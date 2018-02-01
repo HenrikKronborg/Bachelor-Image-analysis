@@ -13,25 +13,38 @@ def StartProgram():
     time.sleep(0.1)
     ReadSettingsAndSet()            #Read configfile and use the values in the program
     #Startup end
-    #while(running):
-    with open("changed.txt", "r") as check:
-        changedValue = check.readline()
+
+    while(running):
+        print("Checking changed.txt")
+        with open("changed.txt", "r") as check:
+            changedValue = check.readline()
+
         print(changedValue)
+
         if changedValue == "1":
-            print("ALERT")
-    if changed != True:
-        print("Implementing new configurations...")
+            print("Change deteced.")
+            global changed
+            changed = True
 
+        if changed == True:
+            print("Implementing new configurations...")
+            #TODO: Function that sets the new camerasettings /w config.txt
+            #Actually just use ReadSettingsAndSet() :-)
+            time.sleep(1)
+            print("Configurations implemented.")
+            changed = False
+            with open("changed.txt", "w") as writeFile:
+                writeFile.write("0")
+            time.sleep(2)
+        else:
+            print("No changes, keeps running")
 
-
-        changed = False
-    else:
-        print("sann")
+        time.sleep(6)
     
     #If changed.txt contains the value "1",
 
     
-    print("File read. " + FormatOption + " is chosen.")
+    #print("File read. " + FormatOption + " is chosen.")
     
 
 def ReadSettingsAndSet():
@@ -55,6 +68,8 @@ def ReadSettingsAndSet():
     print()
     print("******************")
     print()
+
+#Start of program
 print("Starting up Hessdalen_2.0 ...")
 
 print()
