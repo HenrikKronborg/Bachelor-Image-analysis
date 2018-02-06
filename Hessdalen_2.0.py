@@ -1,56 +1,49 @@
 #!/urs/bin/python
 import time
+import sys
+import os
 
 running = True
 changed = False
-resolutionX = 0
-resolutionY = 0
+resolutionX = resolutionY = 0
 formatV = ""
 formatX = ""
+
+#"Main"
 def StartProgram():
     #Run this once at "startup"
+#Starup start
     print("Initializing system...")
     time.sleep(0.1)
-    ReadSettingsAndSet()            #Read configfile and use the values in the program
-    #Startup end
+    #TODO: Initialize camera
+    #Read configfile and set the values in the program
+    #^TODO: Set
+    ReadSettingsAndSet()
+#Startup end
 
+#Do this continiously
     while(running):
-        print("Checking changed.txt")
-        with open("changed.txt", "r") as check:
-            changedValue = check.readline()
-
-        print(changedValue)
-
-        if changedValue == "1":
-            print("Change deteced.")
-            global changed
-            changed = True
-
-        if changed == True:
-            print("Implementing new configurations...")
-            #TODO: Function that sets the new camerasettings /w config.txt
-            #Actually just use ReadSettingsAndSet() :-)
-            time.sleep(1)
-            print("Configurations implemented.")
-            changed = False
-            with open("changed.txt", "w") as writeFile:
-                writeFile.write("0")
-            time.sleep(2)
-        else:
-            print("No changes, keeps running")
-
+        
+        CheckConfiguration()
+        print()
+        print("Filming...")
+        print("Filming...")
+        print("Filming...")
+        #os.system("date")
+              
         time.sleep(6)
-    
-    #If changed.txt contains the value "1",
+        
 
-    
-    #print("File read. " + FormatOption + " is chosen.")
-    
 
+    #TODO: Continiously camera-algorithm after the configuration.
+        #Start filming, each frame goes through ...
+    
+#Does this once at start and once a change has been detected
 def ReadSettingsAndSet():
     print("Reading configfile...")
 
-    with open("config.txt", "r") as file: #Lukker filen etter operasjonene
+#'with' makes sure to close the resource after
+    with open("config.txt", "r") as file: 
         lines = file.readlines()
         #file.close()
     
@@ -61,26 +54,69 @@ def ReadSettingsAndSet():
 
     time.sleep(0.1)
     print()
-    print("**** Settings ****")
+    print()
+    print()
+    print()
+    print()
+    print()
+    print("******** Settings ********")
     print()
     print("Resolution:",resolutionX,"x",resolutionY + ".")
     print("Format: " + formatV + ", " + formatX + ".")
     print()
-    print("******************")
+    print("**************************")
     print()
+    print()
+    print()
+    print()
+    print()
+    
+    
+    
+#At the start of each "loop" check if there is a new configuration change    
+def CheckConfiguration():
+    print()
+    print("Checking changed.txt")
+    with open("changed.txt", "r") as check:
+        changedValue = check.readline()
+
+    print("Read value: " + changedValue)
+    if changedValue == "1":
+        print("Change deteced.")
+        global changed
+        changed = True
+
+    if changed == True:
+        print("Implementing new configurations...")
+        #TODO: Function that sets the new camerasettings /w config.txt
+        #Actually just use ReadSettingsAndSet() :-)
+        time.sleep(1)
+       
+        print("Configurations implemented.")
+        changed = False
+        with open("changed.txt", "w") as writeFile:
+            writeFile.write("0")
+        time.sleep(2)
+    else:
+         print("No changes, keeps running")
+    
+          
+
 
 #Start of program
 print("Starting up Hessdalen_2.0 ...")
 
-print()
-FrameOption = input('Enter framerate (7.5 / 15): ')
+#print()
+#FrameOption = input('Enter framerate (7.5 / 15): ')
+#print()
+
+#print("Framerate set to", FrameOption + ".")
+
+#print()
+#FormatOption = input('Enter format (GREY8 / YUY2): ')
+#print()
+#print("Format set to",FormatOption + ".")
 print()
 
-print("Framerate set to", FrameOption + ".")
-
-print()
-FormatOption = input('Enter format (GREY8 / YUY2): ')
-print()
-print("Format set to",FormatOption + ".")
-print()
+#Calls the "main"
 StartProgram()
