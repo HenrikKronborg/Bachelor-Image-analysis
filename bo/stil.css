@@ -1,0 +1,205 @@
+body {
+	background: #222;
+	margin: 0;
+	padding: 0;
+	font-family: "Open Sans";
+	color: #212529;
+}
+
+.clear {
+	display: table;
+	clear: both;
+	content: '';
+}
+
+.kontainer {
+	max-width: 1140px;
+	margin: 100px auto 0 auto;
+}
+.rad:after {
+	display: table;
+	clear: both;
+	content: '';
+}
+.innholdVenstre {
+	width: 30%;
+	float: left;
+}
+.innholdHoyre {
+	width: 63%;
+	float: right;
+}
+h1 {
+	color: #FFF;
+	font-size: 2.5em;
+}
+
+ul {
+	list-style-type: none;
+	padding: 0;
+	margin: 0;
+}
+.meny {
+	background: #FFF;
+ 	-webkit-border-radius: 4px;
+ 	-moz-border-radius: 4px;
+ 	border-radius: 4px;
+}
+.meny:last-child {
+	margin-top: 20px;
+}
+.meny li {
+	font-size: 1em;
+	font-weight: 700;
+	
+}
+.meny li.padding {
+	padding: 15px 25px;
+}
+.meny li a {
+	display: block;
+	cursor: pointer;
+	padding: 15px 25px;
+	border-bottom: 1px solid #CCC;
+}
+.meny li a.siste {
+	border-bottom: 0;
+}
+.meny li.rens {
+	background: #e74c3c;
+	-webkit-border-bottom-right-radius: 4px;
+	-webkit-border-bottom-left-radius: 4px;
+	-moz-border-radius-bottomright: 4px;
+	-moz-border-radius-bottomleft: 4px;
+	border-bottom-right-radius: 4px;
+	border-bottom-left-radius: 4px;
+}
+.meny li .knappGruppe {
+	width: 100%;
+	clear: both;
+	display: inline-block;
+	margin-bottom: -5px;
+}
+.meny li .knapp {
+	display: none;
+}
+.meny li .knapp + label {
+	background: #949494;
+	color: #FFF;
+	width: 35.4%;
+	float: left;
+	padding: 15px 25px;
+	border-left: 1px solid #FFF;
+	margin-right: -1px;
+	cursor: pointer;
+	text-align: center;
+}
+.meny li .knapp:first-child + label, .meny li .knapp.ingenB + label {
+	border-left: none !important;
+}
+.meny li .knapp:checked + label {
+	background-color: #333;
+}
+#menySlide {
+	display: none;
+}
+#toggleMeny {
+	background: #1e90ff;
+	border-radius: 3px;
+	border-bottom: none;
+}
+li > #toggleMeny {
+	border-bottom: none !important;
+}
+.meny li .tre + label {
+	width: 18.8%;
+}
+.meny li .fire + label {
+	width: 10.5%;
+}
+.meny .paddingK {
+	padding: 15px 25px 10px 25px;
+}
+
+.varsling {
+	background: #3498db;
+	color: #FFF;
+	padding: 20px;
+	margin-top: 15px;
+	-webkit-border-radius: 4px;
+ 	-moz-border-radius: 4px;
+ 	border-radius: 4px;
+	display: none;
+}
+.varsling .lukk {
+	margin-left: 15px;
+	font-weight: 700;
+	float: right;
+	font-size: 20px;
+	line-height: 20px;
+	cursor: pointer;
+	transition: 0.3s;
+}
+.varsling .lukk:hover {
+	color: #000;
+}
+
+.canvasContainer {
+	background: #FFF;
+	display: inline-block;
+	width: 720px;
+	height: 576px;
+	padding: 10px;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	border-radius: 4px;
+}
+#tegneOmraade {
+	position: relative;
+	z-index: 20;
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	outline: none;
+	-webkit-tap-highlight-color: rgba(255, 255, 255, 0);
+}
+#tegneResultat {
+	display: none;
+}
+#tegneReferanse {
+	position: absolute;
+	z-index: 1;
+	-webkit-user-drag: none;
+	-khtml-user-drag: none;
+	-moz-user-drag: none;
+	-o-user-drag: none;
+	user-drag: none;
+}
+
+.penContainer {
+	display: table-cell;
+}
+.pen {
+	background: #000;
+	display: inline-block;
+	width: 20px;
+	height: 20px;
+	vertical-align: middle;
+	border-radius: 80%;
+	-moz-border-radius: 80%;
+	-webkit-border-radius: 80%;
+	cursor: pointer;
+}
+.liten { padding: 1px; }
+.middels { padding: 5px; }
+.stor { padding: 10px; }
+
+.none {
+	display: none;
+}
+input:checked + span {
+	background: #e74c3c;
+}
