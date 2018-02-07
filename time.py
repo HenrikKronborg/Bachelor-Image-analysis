@@ -4,11 +4,6 @@ import time
 
 counter = 0
 
-def lokke():
-    print("5delay")
-    time.sleep(5)
-    print("Fortsetter")
-
 class ThreadingExample(object):
     """ Threading example class
     The run() method will be started and it will run in the background
@@ -30,8 +25,9 @@ class ThreadingExample(object):
         """ Method that runs forever """
         while True:
             # Do something
-            if counter < 5:
-                counter++
+            global counter
+            if counter < 60:
+                counter += 1
             else:
                 counter = 0
             
