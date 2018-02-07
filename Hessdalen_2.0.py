@@ -9,6 +9,10 @@ resolutionX = resolutionY = 0
 formatV = ""
 formatX = ""
 
+currentTime = 30
+startTrim = 0
+stopptrim = 0
+
 #"Main"
 def StartProgram():
     #Run this once at "startup"
@@ -25,11 +29,11 @@ def StartProgram():
     while(running):
         
         CheckConfiguration()
-        print()
+        print("")
         print("Filming...")
         print("Filming...")
         print("Filming...")
-        #os.system("date")
+        os.system("date")
               
         time.sleep(6)
         
@@ -53,38 +57,43 @@ def ReadSettingsAndSet():
     formatX = lines[3].strip()      #x-raw, bayern
 
     time.sleep(0.1)
-    print()
-    print()
-    print()
-    print()
-    print()
-    print()
+    print("")
+    print("")
+    print("")
+    print("")
+    print("")
+    print("")
     print("******** Settings ********")
-    print()
+    print("")
     print("Resolution:",resolutionX,"x",resolutionY + ".")
     print("Format: " + formatV + ", " + formatX + ".")
-    print()
+    print("")
     print("**************************")
-    print()
-    print()
-    print()
-    print()
-    print()
+    print("")
+    print("")
+    print("")
+    print("")
+    print("")
     
     
     
 #At the start of each "loop" check if there is a new configuration change    
 def CheckConfiguration():
-    print()
+    print("")
     print("Checking changed.txt")
     with open("changed.txt", "r") as check:
         changedValue = check.readline()
 
-    print("Read value: " + changedValue)
-    if changedValue == "1":
+    print(type(changedValue))
+    print(changedValue)
+    if changedValue == "hei\n":
         print("Change deteced.")
         global changed
         changed = True
+	startTrim = "03"
+	stoppTrim = "01"
+
+	os.system("ffmpeg -i test.mp4 -ss 00:00:"+ startTrim + " -t 00:00:" + stoppTrim + " -async 1 -strict -2 test3.mp4")
 
     if changed == True:
         print("Implementing new configurations...")
@@ -116,7 +125,7 @@ print("Starting up Hessdalen_2.0 ...")
 #FormatOption = input('Enter format (GREY8 / YUY2): ')
 #print()
 #print("Format set to",FormatOption + ".")
-print()
+print("")
 
 #Calls the "main"
 StartProgram()
