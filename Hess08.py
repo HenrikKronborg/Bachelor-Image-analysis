@@ -36,37 +36,45 @@ def StartProgram():
 		#_Only at start(?)
 		#CheckConfiguration()
 		print("")
-		print("Filming...")			  
+		#print("Filming...")			  
 		time.sleep(1)
-
-		#Simulert deteksjon som varer i 7 sek
-		#1 og 0 vil evt komme ut(return) fra grupperings-algoritmen
-		if counter == 5:
+	
+		#Simulert deteksjon som varer i 2 sek (trimmer fra 4 til 8 sekunder (+/- 1)-buffer))
+		#1 og 0 vil evt komme ut(return) fra grupperings-algoritmen --> kommer en verdi fra hvert analyserte bilde
+		#if detectionPhase == False:
+                        ##I denne fasen
+                        #_Benytt AlarmPhase, kjører kun når det ikke er i deteksjonsfase --> lagrer startTrim èn gang, skjer ikke i Alarmfase().
+                        #Hensikt: Lagre startTrim kun en gang
+                        #AlarmPhase(grupperings-algoritme)
+                        #
+                        #AlarmPhase(algo)
+                        #om over gir 1: lagre startTrim
+						#Loop som går igjennom x frames pr 
+						#Filmer kontinuerlig. AlarmPhase må gå inn på x frames. Men fra en lagret video eller fra live-en.
+						#Er ikke farlig med sanntid
+                        
+		if counter == 3:
+			#AlarmStart()?
 			AlarmPhase(1)
 
+		if counter == 4:
+			AlarmPhase(1)		
+		if counter == 5:
+			AlarmPhase(1)
+		if counter == 6:
+			AlarmPhase(1)
 		if counter == 7:
 			AlarmPhase(0)
+			
+		
+			
             #Om counter når 60: stopp å filme(?), lagre video, trim og send til server, start å filme ny sekvens.
 			#evt: film i 1 time, lagre alle steder som skal trimmes.
-		if counter == 9:
-			#print(startTrim, ", ", stoppTrim, ",", duration)
-			print(startTrim)
-			print(duration)
-			videoName = "test15.mp4"
-			trimmedVideo = "[TRIMMED]"+videoName
-			#Videoen som tak tas i heter ikke altid "test15.mp4" 
-			os.system("ffmpeg -i " + videoName + " -ss 00:00:" + str(startTrim) + " -t 00:00:" + str(duration) + " -async 1 -strict -2 " + trimmedVideo)
-			
-			
+		
 	#TODO: Continiously camera-algorithm after the configuration.
 	#Start filming, each frame goes through ...
 	
-
-	
-	
-	
-
-	
+                #TODO if counter == 60: trim
 		  
 def AlarmPhase(isDetect):
 	#Variabler som holder styr på tiden
@@ -80,25 +88,35 @@ def AlarmPhase(isDetect):
 	global detectionPhase
 
 	if isDetect == 1:
-		detectionPhase = True
-		print("")
-		print(" *** DETEKSJON ***")
-		if detectionPhase = True:
-			startTrim = counter
+		if detectionPhase == False:
+			print(" >[] Detection []<")
+			startTrim = counter-1
+			detectionPhase = True
+		
+			
+		elif detectionPhase == True:
+			print("Currently in detectionPhase, not storing a new startTrim")
+			
 		
 	else:
-		print("")
-		print(" *** Deteksjon avsluttet ***")
-		stoppTrim = counter
-		duration = stoppTrim - startTrim
-		print("Trim videoen på tidspunk: ", startTrim)
-		print("Slutt trimmingen på tidspunkt: ", stoppTrim)
-		#^ Har nå parametre vi kan sende inn i os.system()-trim kommandoen --> (feedes startpunkt og varighet)
-		print("Varighet: ", duration)
-	
-	
+		if detectionPhase == False:
+			print("No detection")
 
+		elif detectionPhase == True:
+			print(" >[X] Deteksjon avsluttet [X]< ")
+			detectionPhase = False
+			stoppTrim = counter+1
+			duration = stoppTrim - startTrim
+			print("Trim videoen på tidspunk: ", startTrim, " (",startTrim+1,")")
+			print("Slutt trimmingen på tidspunkt: ", stoppTrim," (",stoppTrim-1,")")
+			print("Varighet: ", duration)
+			videoName = "test15.mp4"
+			trimmedVideo = "[TRIMMED]"+videoName
+			#Videoen som tak tas i heter ikke altid "test15.mp4" 
+			os.system("ffmpeg -loglevel quiet -i " + videoName + " -ss 00:00:" + str(startTrim) + " -t 00:00:" + str(duration) + " -async 1 -strict -2 " + trimmedVideo)
 
+			
+ 
 class ThreadingExample(object):
 	""" Threading example class: The run() method will be started and it will run in the background until the application exits.	"""
 	def __init__(self, interval=1):
@@ -106,7 +124,7 @@ class ThreadingExample(object):
 		self.interval = interval
 		thread = threading.Thread(target=self.run, args=())
 		thread.daemon = True		# Daemonize thread
-		thread.start()			# Start the execution
+		thread.start()				# Start the execution
 
 	def run(self):
 		""" Method that runs forever """
@@ -130,7 +148,8 @@ def ReadSettingsAndSet():
 	with open("config.txt", "r") as file: 
 		lines = file.readlines()
 		#file.close()
-	
+
+	#Stores the read settings in variables
 	resolutionX = lines[0].strip()  #Reso X
 	resolutionY = lines[1].strip()  #Reso Y
 	formatV = lines[2].strip()	#YUY2, GREY8
@@ -157,7 +176,7 @@ def ReadSettingsAndSet():
 	print("")
 
 
-
+'''
 #At the start of each "loop" check if there is a new configuration change	
 def CheckConfiguration():
 	print("")
@@ -191,7 +210,7 @@ def CheckConfiguration():
 		time.sleep(2)
 	else:
 		 print("No changes, keeps running")
-
+'''
 
 	
 
@@ -202,7 +221,6 @@ def CheckConfiguration():
 print("Starting up Hessdalen_2.0 ...")
 
 #FrameOption = input('Enter framerate (7.5 / 15): ')
-
 #print("Framerate set to", FrameOption + ".")
 
 print("")
