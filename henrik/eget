@@ -1,0 +1,68 @@
+#!/usr/bin/env python3
+
+import gi
+
+#for a slette fil
+import os
+
+gi.require_version("Tcam", "0.1")
+from gi.repository import Tcam
+
+gi.require_version("Gst", "1.0")
+gi.require_version("Gtk", "3.0")
+gi.require_version("GstVideo", "1.0")
+
+from gi.repository import Gtk, Gst, GstVideo, GLib, Gdk, GObject
+
+import sys
+import time
+
+class CameraVideo():
+	def __init__(self):
+		self.pipeline = None
+		
+		#fjern meg senere
+		os.remove("test.mp4")
+		
+		self.create_pipeline()
+		self.pipeline.set_state(Gst.State.PLAYING)
+		print("Starting stream...")
+		self.stream_active = True
+
+	def create_pipeline(self):
+		format = "x-bayer,format=bggr"
+		width = 1024
+		height = 768
+		framerate = "30/1"
+		self.pipeline = Gst.parse_launch(('tcamsrc num-buffers=20 '
+		+ '! video/{},width={},height={},framerate={} '
+		+ '! tcamautoexposure '
+		+ '! tcamwhitebalance '
+		+ '! tcamautofocus '
+		+ '! capssetter join=false caps="video/x-bayer,format=gbrg" '
+		+ '! bayer2rgb '
+		+ '! gdkpixbufoverlay location=/home/bachelor/Desktop/filter.png '
+		+ '! videoconvert '
+		+ '! x264enc '
+		+ '! mp4mux '
+		+ '! filesink location=test.mp4').format(format, width, height, framerate))
+		
+	def close_valve(self, is_closed):
+		valve = self.pipeline.get_by_name("valve")
+
+		if valve is None:
+			print("Valve is broken. Cannot save image")
+			return
+		valve.set_property("drop", is_closed)
+
+def main():
+	Gst.init(sys.argv)
+	Gtk.init(sys.argv)
+	CameraVideo()
+	
+	Gdk.threads_enter()
+	Gtk.main()
+	Gdk.threads_leave()
+
+if __name__ == "__main__":
+	main()

@@ -10,12 +10,11 @@ resolutionX = resolutionY = 0
 formatV = ""
 formatX = ""
 
-filmIntervall = 0
-currentTime = 0
 startTrim = 0
 stopptrim = 0
 duration = 0
 counter = 0
+detectionPhase = False
 
 
 # "Main"
@@ -37,11 +36,7 @@ def StartProgram():
 		#_Only at start(?)
 		#CheckConfiguration()
 		print("")
-		print("Filming...")
-		#print("Filming...")
-		#print("Filming...")
-		#os.system("date")
-			  
+		print("Filming...")			  
 		time.sleep(1)
 
 		#Simulert deteksjon som varer i 7 sek
@@ -49,16 +44,19 @@ def StartProgram():
 		if counter == 5:
 			AlarmPhase(1)
 
-		if counter == 12:
+		if counter == 7:
 			AlarmPhase(0)
-                #Om counter har gått i 60 sekunder: stopp å filme(?), lagre video, trim og send til server, start å filme ny sekvens.
+            #Om counter når 60: stopp å filme(?), lagre video, trim og send til server, start å filme ny sekvens.
 			#evt: film i 1 time, lagre alle steder som skal trimmes.
-		if counter == 15:
+		if counter == 9:
 			#print(startTrim, ", ", stoppTrim, ",", duration)
 			print(startTrim)
 			print(duration)
-			os.system("ffmpeg -i test15.mp4 -ss 00:00:" + str(startTrim) + " -t 00:00:" + str(duration) + " -async 1 -strict -2 test51.mp4")
-
+			videoName = "test15.mp4"
+			trimmedVideo = "[TRIMMED]"+videoName
+			#Videoen som tak tas i heter ikke altid "test15.mp4" 
+			os.system("ffmpeg -i " + videoName + " -ss 00:00:" + str(startTrim) + " -t 00:00:" + str(duration) + " -async 1 -strict -2 " + trimmedVideo)
+			
 			
 	#TODO: Continiously camera-algorithm after the configuration.
 	#Start filming, each frame goes through ...
@@ -79,11 +77,15 @@ def AlarmPhase(isDetect):
 	global stoppTrim
 	global startTrim
 	global duration
+	global detectionPhase
 
 	if isDetect == 1:
+		detectionPhase = True
 		print("")
 		print(" *** DETEKSJON ***")
-		startTrim = counter
+		if detectionPhase = True:
+			startTrim = counter
+		
 	else:
 		print("")
 		print(" *** Deteksjon avsluttet ***")

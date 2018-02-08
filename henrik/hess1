@@ -1,0 +1,119 @@
+#!/usr/bin/env python3
+
+import gi
+
+gi.require_version("Tcam", "0.1")
+from gi.repository import Tcam
+
+gi.require_version("Gst", "1.0")
+gi.require_version("Gtk", "3.0")
+gi.require_version("GstVideo", "1.0")
+
+from gi.repository import Gtk, Gst, GstVideo, GLib, Gdk, GObject
+
+import sys
+
+class CameraVideo(Gtk.Window):
+	"""This class streams a live video from a camera and allows saving of single frames."""
+	def __init__(self):
+		Gtk.Window.__init__(self)
+
+		self.pipeline = None
+		self.stream_active = False
+
+		self.set_title("Mathias sitt lille liveshow")
+		self.connect("destroy", Gtk.main_quit)
+
+		vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+		self.add(vbox)
+
+		# The drawing area is used to display our live stream
+		self.video_area = Gtk.DrawingArea()
+		self.video_area.set_size_request(1024, 768)
+		vbox.pack_start(self.video_area, True, True, 0)
+
+		vbox.show_all()
+		self.video_area.realize()
+		
+		self.create_pipeline()
+		self.pipeline.set_state(Gst.State.PLAYING)
+		print("Starting stream...")
+		self.stream_active = True
+
+	def create_pipeline(self):
+		"""Creates the Gst.pipeline we will use."""
+
+		def bus_sync_handler(bus, msg, pipeline):
+			"""
+			This method is to ensure our xvimagesink is part of our window and
+			not in a separate one.
+			"""
+			if not GstVideo.is_video_overlay_prepare_window_handle_message(msg):
+				return Gst.BusSyncReply.PASS
+			msg.src.set_window_handle(self.video_area.get_window().get_xid())
+			return Gst.BusSyncReply.DROP
+
+		format = "x-bayer,format=bggr"
+		width = 1024
+		height = 768
+		framerate = "30/1"
+		self.pipeline = Gst.parse_launch(('tcamsrc num-buffers=120 '
+		+ '! video/{},width={},height={},framerate={} '
+		+ '! tcamautoexposure '
+		+ '! tcamwhitebalance '
+		+ '! tcamautofocus '
+		+ '! capssetter join=false caps="video/x-bayer,format=gbrg" '
+		+ '! bayer2rgb '
+		+ '! gdkpixbufoverlay location=/home/bachelor/Desktop/filter.png '
+		+ '! videoconvert '
+		#+ '! ximagesink sync=false').format(format, width, height, framerate))
+		
+		# FILME
+		+ '! x264enc '
+		+ '! mp4mux '
+		+ '! filesink location=test.mp4').format(format, width, height, framerate))
+		
+		bus = self.pipeline.get_bus()
+		bus.add_signal_watch()
+		bus.connect("message::element", self.bus_call)
+	
+	def close_valve(self, is_closed):
+		""""""
+		valve = self.pipeline.get_by_name("valve")
+
+		if valve is None:
+			print("Valve is broken. Cannot save image")
+			return
+		valve.set_property("drop", is_closed)
+
+	def bus_call(self, gst_bus, message):
+		""""""
+		t = message.type
+		if (t == Gst.MessageType.ELEMENT):
+			if (message.get_structure().has_name("GstMultiFileSink")):
+				self.close_valve(True)
+
+			else:
+				print("!!!!!Element message came from: {}".format(message.get_structure().get_name()))
+		if not GstVideo.is_video_overlay_prepare_window_handle_message(message):
+			return Gst.BusSyncReply.PASS
+		message.src.set_window_handle(self.video_area.get_window().get_xid())
+
+def main():
+	"""Main function of our program"""
+	# call init functions to prevent problems with threading, etc.
+	# by passing commandline arguments things like --gst-debug-level
+	# will work
+	Gst.init(sys.argv)
+	Gtk.init(sys.argv)
+	win = CameraVideo()
+	win.present()
+	win.show_all()
+
+	# let gtk handle the lifetime of our program
+	Gdk.threads_enter()
+	Gtk.main()
+	Gdk.threads_leave()
+
+if __name__ == "__main__":
+	main()
