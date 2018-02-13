@@ -3,6 +3,8 @@ import threading
 import time
 import sys
 import os
+import cv2
+import numpy as np
 
 running = True
 changed = False
@@ -10,6 +12,12 @@ resolutionX = resolutionY = 0
 formatV = ""
 formatX = ""
 
+<<<<<<< HEAD:Hessdalen_2.0.py
+<<<<<<< Updated upstream
+filmIntervall = 0
+currentTime = 0
+=======
+>>>>>>> master:Hess08.py
 startTrim = 0
 stopptrim = 0
 duration = 0
@@ -21,10 +29,13 @@ detectionAmount = 1
 
 
 # "Main"
+=======
+#"Main"
+>>>>>>> Stashed changes
 def StartProgram():
-	global running
-	#Run this once at "startup"
+    #Run this once at "startup"
 #Starup start
+<<<<<<< Updated upstream
 	print("Initializing system...")
 	time.sleep(0.1)
 	#TODO: Initialize camera
@@ -193,10 +204,38 @@ class ThreadingExample(object):
 
 
 #Kjører en gang, sjekker en configfil og setter innstillingene
+=======
+    print("Initializing system...")
+    time.sleep(0.1)
+    #TODO: Initialize camera
+    #Read configfile and set the values in the program
+    #^TODO: Set
+    ReadSettingsAndSet()
+#Startup end
+
+#Do this continiously
+    while(running):
+        
+        CheckConfiguration()
+        print()
+        print("Filming...")
+        print("Filming...")
+        print("Filming...")
+        #os.system("date")
+              
+        time.sleep(6)
+        
+
+
+    #TODO: Continiously camera-algorithm after the configuration.
+        #Start filming, each frame goes through ...
+    
+>>>>>>> Stashed changes
 #Does this once at start and once a change has been detected
 def ReadSettingsAndSet():
-	print("Reading configfile...")
+    print("Reading configfile...")
 
+<<<<<<< Updated upstream
 #'with' makes sure to close the resource after # Note it ads a \n for each line(?)
 	with open("config.txt", "r") as file: 
 		lines = file.readlines()
@@ -263,7 +302,74 @@ def CheckConfiguration():
 		time.sleep(2)
 	else:
 		 print("No changes, keeps running")
+<<<<<<< HEAD:Hessdalen_2.0.py
+
+=======
+#'with' makes sure to close the resource after
+    with open("config.txt", "r") as file: 
+        lines = file.readlines()
+        #file.close()
+    
+    resolutionX = lines[0].strip()  #Reso X
+    resolutionY = lines[1].strip()  #Reso Y
+    formatV = lines[2].strip()      #YUY2, GREY8
+    formatX = lines[3].strip()      #x-raw, bayern
+
+    time.sleep(0.1)
+    print()
+    print()
+    print()
+    print()
+    print()
+    print()
+    print("******** Settings ********")
+    print()
+    print("Resolution:",resolutionX,"x",resolutionY + ".")
+    print("Format: " + formatV + ", " + formatX + ".")
+    print()
+    print("**************************")
+    print()
+    print()
+    print()
+    print()
+    print()
+    
+    
+    
+#At the start of each "loop" check if there is a new configuration change    
+def CheckConfiguration():
+    print()
+    print("Checking changed.txt")
+    with open("changed.txt", "r") as check:
+        changedValue = check.readline()
+
+    print("Read value: " + changedValue)
+    if changedValue == "1":
+        print("Change deteced.")
+        global changed
+        changed = True
+
+        
+
+    if changed == True:
+        print("Implementing new configurations...")
+        #TODO: Function that sets the new camerasettings /w config.txt
+        #Actually just use ReadSettingsAndSet() :-)
+        time.sleep(1)
+       
+        print("Configurations implemented.")
+        changed = False
+        with open("changed.txt", "w") as writeFile:
+            writeFile.write("0")
+        time.sleep(2)
+    else:
+         print("No changes, keeps running")
+    
+          
+>>>>>>> Stashed changes
+=======
 '''
+>>>>>>> master:Hess08.py
 
 	
 
@@ -276,7 +382,15 @@ print("Starting up Hessdalen_2.0 ...")
 #FrameOption = input('Enter framerate (7.5 / 15): ')
 #print("Framerate set to", FrameOption + ".")
 
+<<<<<<< Updated upstream
 print("")
+=======
+#print()
+#FormatOption = input('Enter format (GREY8 / YUY2): ')
+#print()
+#print("Format set to",FormatOption + ".")
+print()
+>>>>>>> Stashed changes
 
 #Calls the "main"
 StartProgram()
