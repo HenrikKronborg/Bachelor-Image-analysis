@@ -22,7 +22,7 @@ class CameraVideo():
 		self.pipeline = None
 		
 		#fjern meg senere
-		os.remove("test.mp4")
+		#os.remove("test.mp4")
 		
 		self.create_pipeline()
 		self.pipeline.set_state(Gst.State.PLAYING)
@@ -34,7 +34,7 @@ class CameraVideo():
 		width = 1024
 		height = 768
 		framerate = "30/1"
-		self.pipeline = Gst.parse_launch(('tcamsrc num-buffers=20 '
+		self.pipeline = Gst.parse_launch(('tcamsrc num-buffers=350 '
 		+ '! video/{},width={},height={},framerate={} '
 		+ '! tcamautoexposure '
 		+ '! tcamwhitebalance '
