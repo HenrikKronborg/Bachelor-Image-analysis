@@ -41,7 +41,7 @@ class CameraVideo():
 		+ '! tcamautofocus '
 		+ '! capssetter join=false caps="video/x-bayer,format=gbrg" '
 		+ '! bayer2rgb '
-		+ '! gdkpixbufoverlay location=/home/bachelor/Desktop/filter.png '
+		#+ '! gdkpixbufoverlay location=/home/bachelor/Desktop/filter.png '
 		+ '! videoconvert '
 		+ '! x264enc '
 		+ '! mp4mux '

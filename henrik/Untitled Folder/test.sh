@@ -1,0 +1,1 @@
+gst-launch-1.0 -e tcamsrc serial=4810628 ! video/x-raw,format=GRAY8,width=1024,height=768,framerate=30/1 ! videorate ! video/x-raw,format=GRAY8,framerate=1/1 ! videoconvert ! jpegenc ! multifilesink location=frame_%04d.jpg
