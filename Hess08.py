@@ -23,6 +23,9 @@ stopptrim = 0
 duration = 0
 counter = 0
 detectionPhase = False
+#_Holds objects storing different detections /w startTrim, stoppTrim and duration
+detectionArray = []
+detectionAmount = 1
 
 
 # "Main"
@@ -44,6 +47,8 @@ def StartProgram():
 ################################################# Startup end #################################################
 
 #Do this continiously
+#//For each video(intervall) som er lagret i mappen(raw video); Gå igjennom hver video, sjekk hver X'te frame.
+#//Kjør på dagtid?
 	while(running):
 		#_Only at start(?)
 		#CheckConfiguration()
@@ -54,35 +59,54 @@ def StartProgram():
 		#Simulert deteksjon som varer i 2 sek (trimmer fra 4 til 8 sekunder (+/- 1)-buffer))
 		#1 og 0 vil evt komme ut(return) fra grupperings-algoritmen --> kommer en verdi fra hvert analyserte bilde
 		#if detectionPhase == False:
-                        ##I denne fasen
-                        #_Benytt AlarmPhase, kjører kun når det ikke er i deteksjonsfase --> lagrer startTrim èn gang, skjer ikke i Alarmfase().
-                        #Hensikt: Lagre startTrim kun en gang
-                        #AlarmPhase(grupperings-algoritme)
+						#AlarmPhase(grupperings-algoritme)
                         #
                         #AlarmPhase(algo)
-                        #om over gir 1: lagre startTrim
-						#Loop som går igjennom x frames pr 
-						#Filmer kontinuerlig. AlarmPhase må gå inn på x frames. Men fra en lagret video eller fra live-en.
-						#Er ikke farlig med sanntid
                         
+						#//Loop som går igjennom x frames pr 
+						#Filmer kontinuerlig. AlarmPhase tar tak i X frames. Husk: trenger ikke sanntidssystem
+						#Er ikke farlig med sanntid
+		#_ Simulasjon av hva AlarmPhase får igjen i parameter fra bildealgoritmen
+		if counter == 2:
+			AlarmPhase(0)
+			#for obj in detectionArray:
+				#print(obj.name)
+				
 		if counter == 3:
 			#AlarmStart()?
 			AlarmPhase(1)
-
 		if counter == 4:
-			AlarmPhase(1)		
+			AlarmPhase(1)	
 		if counter == 5:
-			AlarmPhase(1)
+			AlarmPhase(0)
 		if counter == 6:
-			AlarmPhase(1)
+			AlarmPhase(0)
 		if counter == 7:
 			AlarmPhase(0)
 			
-		
-			
-            #Om counter når 60: stopp å filme(?), lagre video, trim og send til server, start å filme ny sekvens.
+		if counter == 9:
+			AlarmPhase(1)
+		if counter == 10:
+			AlarmPhase(1)
+		if counter == 11:
+			AlarmPhase(0)
+		if counter == 12:
+			AlarmPhase(0)
+		if counter == 15:	
+			for obj in detectionArray:
+				print(obj.name, " - Start:", obj.start, ", Stopp:", obj.stopp, ", Duration:", obj.duration)
+				#lage trim async
+				#https://www.ffmpeg.org/ffmpeg.html#Description ffmpeg options -> 5.4 Main options
+				os.system("ffmpeg -i test.mp4 -ss 00:00:" + str(obj.start) + " -t 00:00:" + str(obj.duration) + " -async 1 -strict -2 [Trimmed]" + obj.name+".mp4")
+				#os.system("ffmpeg -i test.mp4 -ss 00:00:" + str(obj.start) + " -t 00:00:" + str(obj.duration) + " -vf drawtext=fontfile=/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf: \text='%{localtime\:%T}': fontcolor=white@0.8: x=7: y=700 -async 1 -strict -2 [Trimmed]" + obj.name+".mp4")
+
+			running=False
+            #Om counter når 60: stopp å filme(?), lagre video, trim og send til server, start å filme ny sekvens.//<-Ikke sanntid
 			#evt: film i 1 time, lagre alle steder som skal trimmes.
-		
+			#TODO: [Hvor lange intervaller?]-> sec/min/time -> må pushe inn i "hr:min:sec"
+			#TODO: Filnavnet bør ha dagen dato, kommer fra når vi lagrer videoen. Benytte kø for å behandle videoer som skal behandles?
+			#Si vi lagrer 30-minutters filmer gjennom nattens løp: det vil ikke nødvendigvis være mange av disse som inneholder deteksjon
+			
 	#TODO: Continiously camera-algorithm after the configuration.
 	#Start filming, each frame goes through ...
 	
@@ -91,13 +115,16 @@ def StartProgram():
 def AlarmPhase(isDetect):
 	#Variabler som holder styr på tiden
 	#ta inn filmetid (0-60s), 
-	#variabel som sjekker om det fortsatt er alarmstatus /boo
+	#variabel som sjekker om det fortsatt er alarmstatus /bool
 		#isDetect er enten 0 eller 1 --> kommer fra grupperings-algo
 		#Så lenge isDetect er sann 
 	global stoppTrim
 	global startTrim
 	global duration
 	global detectionPhase
+	global detectionArray
+	global detectionAmount
+	
 
 	if isDetect == 1:
 		if detectionPhase == False:
@@ -119,16 +146,41 @@ def AlarmPhase(isDetect):
 			detectionPhase = False
 			stoppTrim = counter+1
 			duration = stoppTrim - startTrim
+			#Få tak i frame name evt?
+			trimName = "Detect_"+str(detectionAmount)
+			#dette tallet må resetes ved nytt "intervall"
+			detectionAmount += 1
 			print("Trim videoen på tidspunk: ", startTrim, " (",startTrim+1,")")
 			print("Slutt trimmingen på tidspunkt: ", stoppTrim," (",stoppTrim-1,")")
 			print("Varighet: ", duration)
+			
+			
+			
+			detectionArray.append(VideoObject(trimName, startTrim, stoppTrim, duration))
+			print(detectionArray[(detectionAmount-2)].name, "Added.")
+			
+			""""
 			videoName = "test15.mp4"
 			trimmedVideo = "[TRIMMED]"+videoName
-			#Videoen som tak tas i heter ikke altid "test15.mp4" 
+			#Videoen som tak tas i heter ikke altid "test15.mp4"
+			#-loglevel quiet fjerner ALL output fra ffmpeg
+			########Ikke behandle det her; vent til alle detekteringssteder fra array er med. 1x60s loop
 			os.system("ffmpeg -loglevel quiet -i " + videoName + " -ss 00:00:" + str(startTrim) + " -t 00:00:" + str(duration) + " -async 1 -strict -2 " + trimmedVideo)
-
-			
+			#Lage objekter som har dette som properties, lagre objektene i en array(?), foreach/in
+			"""
  
+class VideoObject(object):
+		start = 0
+		stopp = 0
+		duration = 0
+		def __init__(self, name, startT, stoppT, dura):
+			self.name = name
+			self.start = startT
+			self.stopp = stoppT
+			self.duration = dura
+			
+			
+			
 class ThreadingExample(object):
 	""" Threading example class: The run() method will be started and it will run in the background until the application exits.	"""
 	def __init__(self, interval=1):
@@ -322,8 +374,8 @@ def CheckConfiguration():
 	
 
 #       #       #       #       #       #       #       #
-#                       Start of program                #
-#	#       #       #       #       #       #       #
+#                     Start of program                  #
+#		#       #       #       #       #       #       #
 
 print("Starting up Hessdalen_2.0 ...")
 
