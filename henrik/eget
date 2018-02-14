@@ -34,7 +34,7 @@ class CameraVideo():
 		width = 1024
 		height = 768
 		framerate = "30/1"
-		self.pipeline = Gst.parse_launch(('tcamsrc num-buffers=350 '
+		self.pipeline = Gst.parse_launch(('tcamsrc num-buffers=20 '
 		+ '! video/{},width={},height={},framerate={} '
 		+ '! tcamautoexposure '
 		+ '! tcamwhitebalance '
