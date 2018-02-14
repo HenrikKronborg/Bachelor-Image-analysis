@@ -34,6 +34,7 @@ test2=0
 #TODO: Start tråd som kjører independent, kanskje bare på kveldstid(?)
 ## obs, filstier *kan* variere
 ##Lag mappe for neste intervall
+<<<<<<< HEAD
 while(test < 3):
 	i = datetime.now()
 	#_ TODO: Legge til disse i en kø? First in, first out? Array? Noe som holder styr på neste video som kan analyseres ( husk X mappe må være klar->ha alle frames lagd/filmet ferdig)
@@ -48,6 +49,13 @@ while(test < 3):
 
 	os.system("mkdir /home/nvidia/Bachelor/Frames/" + CurrentVideo) #<- Navnet blir brukt i Henrik-funk
 #TODO: Film --> Henrik_Code()
+=======
+i = datetime.now()
+#_ TODO: Legge til disse i en kø? First in, first out? Array? Noe som holder styr på neste video som kan analyseres ( husk X mappe må være klar->ha alle frames lagd/filmet ferdig)
+CurrentVideo = str(i.strftime('%Y_%m_%d_%H:%M:%S'))
+#os.system("mkdir /home/nvidia/Bachelor/Frames/" + CurrentVideo) #<- Navnet blir brukt i Henrik-funk
+#TODO: Film
+>>>>>>> b3c4fb844762e46b36945c36436437a7f4a0d9a6
 
 
 
