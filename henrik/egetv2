@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+import sys
+import gi
+import time
+
+gi.require_version("Tcam", "0.1")
+gi.require_version("Gst", "1.0")
+
+from gi.repository import Tcam, Gst
+
+def main():
+	Gst.init(sys.argv)  # init gstreamer
+	'''
+	# we create a source element to retrieve a device list through it
+	#source = Gst.ElementFactory.make("tcambin")
+	
+	# serial is defined, thus make the source open that device
+	#source.set_property("serial", 4810628)
+	
+	convert = Gst.ElementFactory.make("videoconvert")
+	output = Gst.ElementFactory.make("ximagesink")
+	output.set_property("async", True)
+	pipeline = Gst.Pipeline.new()
+
+	pipeline.add(source)
+	pipeline.add(convert)
+	pipeline.add(output)
+
+	source.link(convert)
+	convert.link(output)
+	'''
+	
+	pipeline = Gst.Pipeline.new()
+	pipeline = Gst.parse_launch('tcamsrc serial=4810628 '
+				+ '! video/x-bayer,format=bggr,width=1024,height=768,framerate=30/1 '
+				+ '! capssetter join=false caps="video/x-bayer,format=gbrg" '
+				+ '! bayer2rgb '
+				+ '! clockoverlay time-format="%d/%m/%Y %H:%M:%S" text="test" valignment=bottom shaded-background=true font-desc="sans, 8" '
+				+ '! videoconvert '
+				+ '! ximagesink sync=false')
+	
+	pipeline.set_state(Gst.State.PLAYING)
+	
+	time.sleep(5)
+	
+	pipeline.set_state(Gst.State.NULL)
+
+if __name__ == "__main__":
+	main()
