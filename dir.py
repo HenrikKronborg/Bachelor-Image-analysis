@@ -2,6 +2,7 @@
 import os
 import time
 from datetime import datetime
+#from time import gmtime, strftime
 
 class Queue:
     def __init__(self):
@@ -18,11 +19,18 @@ class Queue:
 
     def size(self):
         return len(self.items)
-#from time import gmtime, strftime
+
+
+class VideoObj(object):
+	name = ""
+	finished = False
+	def __init__(self, timestamp, status):
+		self.name = timestamp
+		self.finished = status
 
 
 deteksjonArray = []
-videoQueue = Queue()
+CompletedVideoQueue = Queue()
 test = 0
 test2=0
 
@@ -34,38 +42,71 @@ test2=0
 #TODO: Start tråd som kjører independent, kanskje bare på kveldstid(?)
 ## obs, filstier *kan* variere
 ##Lag mappe for neste intervall
-<<<<<<< HEAD
-while(test < 3):
-	i = datetime.now()
-	#_ TODO: Legge til disse i en kø? First in, first out? Array? Noe som holder styr på neste video som kan analyseres ( husk X mappe må være klar->ha alle frames lagd/filmet ferdig)
-	CurrentVideo = str(i.strftime('%Y_%m_%d_%H:%M:%S'))
-	#print(CurrentVideo)
-	videoQueue.enqueue(CurrentVideo)
-	time.sleep(1.1)# For test
-	test += 1
-#Skriv ut køen
-#while test2 < videoQueue.size():
-#	print(videoQueue.dequeue())
-
-	os.system("mkdir /home/nvidia/Bachelor/Frames/" + CurrentVideo) #<- Navnet blir brukt i Henrik-funk
-#TODO: Film --> Henrik_Code()
-=======
-i = datetime.now()
-#_ TODO: Legge til disse i en kø? First in, first out? Array? Noe som holder styr på neste video som kan analyseres ( husk X mappe må være klar->ha alle frames lagd/filmet ferdig)
-CurrentVideo = str(i.strftime('%Y_%m_%d_%H:%M:%S'))
-#os.system("mkdir /home/nvidia/Bachelor/Frames/" + CurrentVideo) #<- Navnet blir brukt i Henrik-funk
-#TODO: Film
->>>>>>> b3c4fb844762e46b36945c36436437a7f4a0d9a6
-
-
-
-##Hvis det er to video-intervaller i Videoer-mappen; start analyse på første//Kan byttes ut med noe annet så lenge vi ikke begynner før et helt intervall er ferdig.
-#if len(os.listdir('/home/nvidia/Bachelor/Videoer')) > 1:
-	#todo: for			
-		#if end=".mp4"
+def egenFunk():
+	global test
+	while(test < 3):
+		i = datetime.now()
+		
+		CurrentVideo = str(i.strftime('%Y_%m_%d_%H:%M:%S'))
+		print(CurrentVideo)
+		####os.system("mkdir /home/nvidia/Bachelor/Frames/" + CurrentVideo)
+		obj = VideoObj(CurrentVideo, False)
+		
+		#TODO: Film --> Henrik_Code() bruker CurrentVideo
+		#print("Filmer... videoen har status: false")
+		print("")
+		#TODO(?):vent til alle frames er filmet ferdig; 
+		
+		#print("Videoen er ferdiglagd, setter status = True og objektet blir lagt til i CompletedVideoQueue")
+		setattr(obj, 'finished', 'True')
+		CompletedVideoQueue.enqueue(obj)
+		##^ Denne køen blir sjekket lengre nede i while
+		#print("Filmet ferdig: ",thisObject.finished)
+		
+		time.sleep(1.1)# For test
+		test += 1
+	mainProg()
+	#Skriv ut køen
+	#while test2 < videoQueue.size():
+	#	temp = videoQueue.dequeue()
+	#	print(temp.name +" : "+ temp.finished)
 
 		
+
+
+
+
+	##Hvis det er to video-intervaller i Videoer-mappen; start analyse på første//Kan byttes ut med noe annet så lenge vi ikke begynner før et helt intervall er ferdig.
+	#if len(os.listdir('/home/nvidia/Bachelor/Videoer')) > 1:
+		#todo: for			
+			#if end=".mp4"
+
+def mainProg():
+	if len(os.listdir('/home/nvidia/Bachelor/Videoer')) > 1: #Mulig en bare kan se bort i denne 99% sure
+		if not CompletedVideoQueue.isEmpty():
+			print("Fant video")
+			#while test2 < CompletedVideoQueue.size():
+			#	temp = CompletedVideoQueue.dequeue()
+			#	print(temp.name +" : "+ temp.finished)
+			video = CompletedVideoQueue.dequeue() #Alle videoer som ligger i denne er ferdig behandlet.
+			path = "/home/nvidia/Bachelor/Frames/"+video.name
+			#testpath = "/home/nvidia/Bachelor/Frames/video1frames"
+			#print(path)
+			#print(orgNavn)
+			##Få tak i tilhørende mappe
+			for frame in os.listdir(path):
+				print(MathiasAlg(frame))
+				#JonasAlg(MathiasAlg(frame))
+				#print("framee")
+			
+		else:
+			print("Ingen videoer i køen.")
 		
+	
+	
+#print("hei")
+egenFunk()
+
 
 '''
 for video in os.listdir('/home/bachelor/Git/Bachelor/raw'):

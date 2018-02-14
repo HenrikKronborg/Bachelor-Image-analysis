@@ -2,6 +2,7 @@
 import sys
 import gi
 import time
+import datetime
 
 gi.require_version("Tcam", "0.1")
 gi.require_version("Gst", "1.0")
@@ -9,41 +10,62 @@ gi.require_version("Gst", "1.0")
 from gi.repository import Tcam, Gst
 
 def main():
-	Gst.init(sys.argv)  # init gstreamer
-	'''
-	# we create a source element to retrieve a device list through it
-	#source = Gst.ElementFactory.make("tcambin")
-	
-	# serial is defined, thus make the source open that device
-	#source.set_property("serial", 4810628)
-	
-	convert = Gst.ElementFactory.make("videoconvert")
-	output = Gst.ElementFactory.make("ximagesink")
-	output.set_property("async", True)
-	pipeline = Gst.Pipeline.new()
-
-	pipeline.add(source)
-	pipeline.add(convert)
-	pipeline.add(output)
-
-	source.link(convert)
-	convert.link(output)
-	'''
+	Gst.init(sys.argv)
 	
 	pipeline = Gst.Pipeline.new()
+	'''
 	pipeline = Gst.parse_launch('tcamsrc serial=4810628 '
 				+ '! video/x-bayer,format=bggr,width=1024,height=768,framerate=30/1 '
+				+ '! tcamautoexposure '
+				+ '! tcamwhitebalance '
+				+ '! tcamautofocus '				
 				+ '! capssetter join=false caps="video/x-bayer,format=gbrg" '
 				+ '! bayer2rgb '
 				+ '! clockoverlay time-format="%d/%m/%Y %H:%M:%S" text="test" valignment=bottom shaded-background=true font-desc="sans, 8" '
+				+ '! ximagesink name=sink sync=false')
+	'''	
+	pipeline = Gst.parse_launch('tcamsrc serial=4810628 '
+				#+ '! tee name=t t. '
+				+ '! video/x-bayer,format=bggr,width=1024,height=768,framerate=30/1 '			
+				+ '! capssetter join=false caps="video/x-bayer,format=gbrg" '
+				+ '! bayer2rgb '
 				+ '! videoconvert '
-				+ '! ximagesink sync=false')
+				+ '! x264enc rc-lookahead=5 tune=4 '
+				+ '! mp4mux '
+				+ '! filesink name=sink location=bilder/test.mp4')
+	
+	sink = pipeline.get_by_name("sink")
+	sink.set_property("enable-last-sample", True)
 	
 	pipeline.set_state(Gst.State.PLAYING)
 	
-	time.sleep(5)
+	for i in range(0, 2):
+		time.sleep(2)
+		save_image(pipeline)
 	
+	time.sleep(4)
+
 	pipeline.set_state(Gst.State.NULL)
+
+
+def save_image(pipeline):
+	sink = pipeline.get_by_name("sink")
+	sample = sink.get_property("last-sample")
+	print(sink)
+	print(sample)	
+
+	filename = "bilder/" + datetime.datetime.now().strftime("%d-%m-%Y-%H:%M:%S") + ".jpg"
+	buffer = sample.get_buffer()
+	
+	pipeline = Gst.parse_launch("appsrc name=src ! videoconvert ! jpegenc ! filesink location=%s" % filename)
+	src = pipeline.get_by_name("src")
+	src.set_property("caps", sample.get_caps())
+	pipeline.set_state(Gst.State.PLAYING)
+	src.emit("push-buffer", buffer)
+	src.emit("end-of-stream")
+	pipeline.get_state(Gst.CLOCK_TIME_NONE)
+	pipeline.set_state(Gst.State.NULL)
+	pipeline.get_state(Gst.CLOCK_TIME_NONE)
 
 if __name__ == "__main__":
 	main()

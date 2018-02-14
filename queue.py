@@ -29,7 +29,7 @@ q = Queue()
 
 q.enqueue(VideoObj("v1",False))
 temp = q.dequeue()
-print(temp.name + " - " + temp.finished)
+print(temp.name + " - " + str(temp.finished))
 
 #print(q.size())
 #print(q.isEmpty())
