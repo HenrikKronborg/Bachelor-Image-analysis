@@ -18,13 +18,13 @@ deteksjonArray = []
 i = datetime.now()
 #_ TODO: Legge til disse i en kø? First in, first out? Array? Noe som holder styr på neste video som kan analyseres ( husk X mappe må være klar->ha alle frames lagd/filmet ferdig)
 CurrentVideo = str(i.strftime('%Y_%m_%d_%H:%M:%S'))
-os.system("mkdir /home/nvidia/Bachelor/Frames/" + CurrentVideo) #<- Navnet blir brukt i Henrik-funk
+#os.system("mkdir /home/nvidia/Bachelor/Frames/" + CurrentVideo) #<- Navnet blir brukt i Henrik-funk
 #TODO: Film
 
 
 
 ##Hvis det er to video-intervaller i Videoer-mappen; start analyse på første//Kan byttes ut med noe annet så lenge vi ikke begynner før et helt intervall er ferdig.
-if len(os.listdir('/home/nvidia/Bachelor/Videoer')) > 1:
+#if len(os.listdir('/home/nvidia/Bachelor/Videoer')) > 1:
 	#todo: for			
 		#if end=".mp4"
 
