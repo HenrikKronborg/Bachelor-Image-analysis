@@ -2,7 +2,10 @@
 import os
 import time
 from datetime import datetime
+import cv2
+import numpy as np
 #from time import gmtime, strftime
+
 
 class Queue:
     def __init__(self):
@@ -28,11 +31,47 @@ class VideoObj(object):
 		self.name = timestamp
 		self.finished = status
 
+###im = cv2.imread(object, cv2.IMREAD_GRAYSCALE)
+###retval, otsu = cv2.threshold(im, 0, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
 
-deteksjonArray = []
+detectionArray = []
 CompletedVideoQueue = Queue()
 test = 0
 test2=0
+
+def MathiasAlg():
+    
+    params = cv2.SimpleBlobDetector_Params()
+
+    params.minThreshold = 10;
+    params.maxThreshold = 400;
+
+    params.filterByColor = False
+    params.blobColor = 255 #høgt tall er hvitt, små tall er mørkt
+
+    params.filterByArea = True
+    params.minArea = 20 #Sette størrelsen på piksel til stjerne
+    params.maxArea = 5000
+
+    params.filterByCircularity = False #Disse må være med, blir satt standard til true
+    params.filterByConvexity = False
+    params.filterByInertia = False
+
+    detector = cv2.SimpleBlobDetector_create(params)
+    #print(str(detector))
+    keypoints = detector.detect(otsu)
+    if  not keypoints:
+        print("Tom")
+
+        return 0
+    else:
+        print("detet")
+        
+        im_with = cv2.drawKeypoints(otsu, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+        cv2.imshow("DETEKSJON", im_with)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+        return 1
 
 ##Gjør noe i oppstarten èn gang
 #TODO: def(?) innstillinger, startparametere(?)
@@ -47,6 +86,7 @@ def egenFunk():
 	while(test < 3):
 		i = datetime.now()
 		
+		
 		CurrentVideo = str(i.strftime('%Y_%m_%d_%H:%M:%S'))
 		print(CurrentVideo)
 		####os.system("mkdir /home/nvidia/Bachelor/Frames/" + CurrentVideo)
@@ -59,7 +99,7 @@ def egenFunk():
 		
 		#print("Videoen er ferdiglagd, setter status = True og objektet blir lagt til i CompletedVideoQueue")
 		setattr(obj, 'finished', 'True')
-		CompletedVideoQueue.enqueue(obj)
+		CompletedVideoQueue.enqueue(obj) ###lage objektet her inne i steden for
 		##^ Denne køen blir sjekket lengre nede i while
 		#print("Filmet ferdig: ",thisObject.finished)
 		
@@ -88,19 +128,36 @@ def mainProg():
 			#while test2 < CompletedVideoQueue.size():
 			#	temp = CompletedVideoQueue.dequeue()
 			#	print(temp.name +" : "+ temp.finished)
-			video = CompletedVideoQueue.dequeue() #Alle videoer som ligger i denne er ferdig behandlet.
-			path = "/home/nvidia/Bachelor/Frames/"+video.name
-			#testpath = "/home/nvidia/Bachelor/Frames/video1frames"
+			####video = CompletedVideoQueue.dequeue() #Alle videoer som ligger i denne er ferdig behandlet.
+			####path = "/home/nvidia/Bachelor/Frames/"+video.name
+			testpath = "/home/nvidia/Bachelor/Frames/Bilder"
 			#print(path)
 			#print(orgNavn)
 			##Få tak i tilhørende mappe
-			for frame in os.listdir(path):
-				print(MathiasAlg(frame))
+			for frame in os.listdir(testpath): #Hva er frame her? navnet? Må kanskje ta tak i på annet vis
+				###print(MathiasAlg(frame))
 				#JonasAlg(MathiasAlg(frame))
 				#print("framee")
 			
+			orgVideo = video.name
+			orgVideoPath = "/home/nvidia/Bachelor/Videoer/" + orgVideo
+			#print(orgVideoPath)
+			for detection in detectionArray:		#_Gjør noe med tindspunktene start(), dura()									#Sjekk navn, obj
+				os.system("ffmpeg -i " + orgVideoPath + " -ss 00:00:04 -t 00:00:01 -async 1 -strict -2 /home/nvidia/Bachelor/Trims/[T]"+detection.name)
+			
+			#Vent?
+			for trim in os.listdir("home/nvidia/Bachelor/Trims"):
+				#TODO Send over til Hessdalen.noe
+				
+				
+			###os.system(remove /home/nvidia/Bachelor/$orgVideoPath)
+			###os.system(remove /home/nvidia/Bachelor/Trims .*)
+			###os.system(remove /home/nvidia/Bachelor/Frames/path)
 		else:
 			print("Ingen videoer i køen.")
+		
+		
+		
 		
 	
 	

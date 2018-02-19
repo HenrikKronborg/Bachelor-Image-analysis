@@ -33,8 +33,8 @@ class CameraVideo():
 		format = "x-bayer,format=bggr"
 		width = 1024
 		height = 768
-		framerate = "30/1"
-		self.pipeline = Gst.parse_launch(('tcamsrc num-buffers=20 '
+		framerate = "15/1"
+		self.pipeline = Gst.parse_launch(('tcamsrc num-buffers=120 '
 		+ '! video/{},width={},height={},framerate={} '
 		+ '! tcamautoexposure '
 		+ '! tcamwhitebalance '
@@ -43,7 +43,7 @@ class CameraVideo():
 		+ '! bayer2rgb '
 		#+ '! gdkpixbufoverlay location=/home/bachelor/Desktop/filter.png '
 		+ '! videoconvert '
-		+ '! x264enc '
+		+ '! x264enc bitrate=8192 '
 		+ '! mp4mux '
 		+ '! filesink location=test.mp4').format(format, width, height, framerate))
 		
