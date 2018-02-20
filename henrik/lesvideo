@@ -1,0 +1,19 @@
+#!/usr/bin/env python3
+
+import cv2
+import numpy as np
+
+capture = cv2.VideoCapture("test.avi")
+
+while(True):
+	ret, frame = capture.read()
+	
+	gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+	
+	cv2.imshow("frame", gray)
+	if cv2.waitKey(1) & 0xFF == ord("q"):
+		break
+	print(frame)
+
+capture.release()
+cv2.destroyAllWindows()

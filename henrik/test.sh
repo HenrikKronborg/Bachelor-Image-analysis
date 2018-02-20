@@ -15,4 +15,7 @@
 #gst-launch-1.0 nvcamerasrc fpsRange="30 30" ! 'video/x-raw(memory:NVMM), width=(int)3840, height=(int)2160, format=(string)I420, framerate=(fraction)30/1' ! nvtee ! nvivafilter cuda-process=true customer-lib-name="libsample_process.so" ! 'video/x-raw(memory:NVMM), format=(string)NV12' ! nvoverlaysink -e
 
 
-gst-launch-1.0 tcamsrc serial=4810628 ! video/x-bayer,format=bggr,width=1024,height=768,framerate=30/1 ! capssetter join=false caps="video/x-bayer,format=gbrg" ! bayer2rgb ! videoconvert ! nvoverlaysink
+#gst-launch-1.0 tcamsrc serial=4810628 ! video/x-bayer,format=bggr,width=1024,height=768,framerate=30/1 ! capssetter join=false caps="video/x-bayer,format=gbrg" ! bayer2rgb ! videoconvert ! nvoverlaysink
+
+
+gst-launch-1.0 -e tcambin ! video/x-bayer,format=bggr,width=1024,height=768,framerate=30/1 ! capssetter join=false caps="video/x-bayer,format=gbrg" ! bayer2rgb ! videoconvert ! omxh264enc ! mp4mux ! filesink location=test.mp4

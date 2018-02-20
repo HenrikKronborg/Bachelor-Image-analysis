@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-im = cv2.imread("Hess1.jpg", cv2.IMREAD_GRAYSCALE)
+im = cv2.imread("/home/nvidia/Bachelor/Frames/Bilder/asd.jpg", cv2.IMREAD_GRAYSCALE)
 retval, otsu = cv2.threshold(im, 0, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
 retval2, threshold2 = cv2.threshold(im, 12, 255, cv2.THRESH_BINARY)
 
@@ -18,7 +18,7 @@ def asd():
     params.blobColor = 255 #høgt tall er hvitt, små tall er mørkt
 
     params.filterByArea = True
-    params.minArea = 20 #Sette størrelsen på piksel til stjerne
+    params.minArea = 10#Sette størrelsen på piksel til stjerne
     params.maxArea = 5000
 
     params.filterByCircularity = False #Disse må være med, blir satt standard til true
