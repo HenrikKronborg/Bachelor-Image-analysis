@@ -6,8 +6,8 @@ import cv2
 import numpy as np
 
 #20.02 test lappeteppe
-img_mask = "C:\\Users\\Mathias\\AppData\\Local\\Programs\\Python\\Python36-32\\a.png"
-#capture = cv2.VideoCapture("video.avi")
+img_mask = "/home/nvidia/Bachelor/a.png"
+capture = cv2.VideoCapture("video.avi")
 
 
 class Queue:
@@ -233,5 +233,7 @@ def mainProg():
 
 		#else:
 		#	print("Ingen videoer i køen.")
+		
+MathiasAlg()
 
 
