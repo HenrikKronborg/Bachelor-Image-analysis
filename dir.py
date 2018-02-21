@@ -6,6 +6,12 @@ import cv2
 import numpy as np
 #from time import gmtime, strftime
 
+#20.02 test lappeteppe
+img_mask = "C:\\Users\\Mathias\\AppData\\Local\\Programs\\Python\\Python36-32\\a.png"
+capture = cv2.VideoCapture("video.avi")
+ 
+
+
 
 class Queue:
     def __init__(self):
@@ -57,39 +63,113 @@ detectionAmount = 0
 
 
 def MathiasAlg():
+	while(True):
+ 
+    ret, frame = capture.read()
+ 
+
+ 
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+ 
+
+ 
+    #cv2.imshow("frame", gray)
+ 
+    if cv2.waitKey(1) & 0xFF == ord("q"):
+ 
+        break
+ 
+    cv2.imwrite('a.png', gray)
+ 
+    print(gray)
+ 
+    print(asd("C:\\Users\\Mathias\\AppData\\Local\\Programs\\Python\\Python36-32\\a.png"))
+ 
+    #os.system("rm a.png")
+ 
+   # os.popen('Del /F C:\\Users\\Mathias\\AppData\\Local\\Programs\\Python\\Python36-32\\a.png')
+ 
+    cv2.waitKey(0)
+ 
+
+ 
+capture.release()
+ 
+cv2.destroyAllWindows()
+ 
     
+    
+def asd(object):
+ 
+    image_path = img_mask
+ 
+    print(object)
+ 
+    print(image_path)
+ 
+    im = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+ 
+    retval, threshold = cv2.threshold(im, 200, 255, cv2.THRESH_BINARY_INV)
+ 
+    
+ 
     params = cv2.SimpleBlobDetector_Params()
+ 
 
-    params.minThreshold = 10;
-    params.maxThreshold = 400;
+ 
+    params.minThreshold = 100;
+ 
+    params.maxThreshold = 260;
+ 
 
+ 
     params.filterByColor = False
+ 
     params.blobColor = 255 #høgt tall er hvitt, små tall er mørkt
+ 
 
+ 
     params.filterByArea = True
-    params.minArea = 20 #Sette størrelsen på piksel til stjerne
-    params.maxArea = 5000
+ 
+    params.minArea = 30 #Sette størrelsen på piksel til stjerne
+ 
+    params.maxArea = 4000
+ 
 
+ 
     params.filterByCircularity = False #Disse må være med, blir satt standard til true
+ 
     params.filterByConvexity = False
+ 
     params.filterByInertia = False
+ 
 
+ 
     detector = cv2.SimpleBlobDetector_create(params)
-    #print(str(detector))
-    keypoints = detector.detect(otsu)
+ 
+    keypoints = detector.detect(threshold)
+ 
     if  not keypoints:
+ 
         print("Tom")
-
+ 
         return 0
+ 
     else:
-        print("detet")
+ 
+        print("detekt")
+ 
         
-        im_with = cv2.drawKeypoints(otsu, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-        cv2.imshow("DETEKSJON", im_with)
+ 
+        im_with = cv2.drawKeypoints(threshold, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+ 
+        #cv2.imshow("DETEKSJON", im_with)
+ 
         cv2.waitKey(0)
+ 
         cv2.destroyAllWindows()
+ 
         return 1
-
 
 def AlarmPhase(isDetect):
 	#Variabler som holder styr på tiden
@@ -147,7 +227,8 @@ def AlarmPhase(isDetect):
 			os.system("ffmpeg -loglevel quiet -i " + videoName + " -ss 00:00:" + str(startTrim) + " -t 00:00:" + str(duration) + " -async 1 -strict -2 " + trimmedVideo)
 			#Lage objekter som har dette som properties, lagre objektene i en array(?), foreach/in
 			"""
-
+			'''
+'''
 ## obs, filstier *kan* variere
 ##Lag mappe for neste intervall
 def egenFunk():
@@ -200,30 +281,29 @@ def mainProg():
 			#print(path)
 			#print(orgNavn)
 			##Gå igjennom tilhørende Frames-folder
-			for frame in os.listdir(testpath):
+			#for frame in os.listdir(testpath):
 			####if frame.lower().endswith('mp4'):
 					####print(MathiasAlg(frame))
 					#JonasAlg(MathiasAlg(frame))
 					#print("frame")
 			
-			orgVideo = video.name
-			orgVideoPath = "/home/nvidia/Bachelor/Videoer/" + orgVideo
+			#orgVideo = video.name
+			#orgVideoPath = "/home/nvidia/Bachelor/Videoer/" + orgVideo
 			#print(orgVideoPath)
-			for detection in detectionArray:		#_Gjør noe med tindspunktene start(), dura()									#Sjekk navn, obj
-				os.system("ffmpeg -i " + orgVideoPath + " -ss 00:00:04 -t 00:00:01 -async 1 -strict -2 /home/nvidia/Bachelor/Trims/[T]"+detection.name)
+			#for detection in detectionArray:
+			#_Gjør noe med tindspunktene start(), dura() Sjekk navn, obj
+			#	os.system("ffmpeg -i " + orgVideoPath + " -ss 00:00:04 -t 00:00:01 -async 1 -strict -2 /home/nvidia/Bachelor/Trims/[T]"+detection.name)
 			
 			#Vent?
-			for trim in os.listdir("home/nvidia/Bachelor/Trims"):
+			#for trim in os.listdir("home/nvidia/Bachelor/Trims"):
 				#TODO Send over til Hessdalen.no MathiasCode?
 			
 			####os.system("rm -rv /home/nvidia/Bachelor/Videoer/"+orgVideo) # Benytt -rf til slutt
 			####os.system("rm -v /home/nvidia/Bachelor/Trims/*")
 			####os.system("rm -rv /home/nvidia/Bachelor/Frames/"+orgVideo)
 
-		else:
-			print("Ingen videoer i køen.")
-		
-		
+		#else:
+		#	print("Ingen videoer i køen.")
 		
 		
 egenFunk()
