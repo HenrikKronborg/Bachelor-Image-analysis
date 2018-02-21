@@ -107,3 +107,131 @@ def asd(object):
         cv2.waitKey(0)
         cv2.destroyAllWindows()
         return 1
+
+def AlarmPhase(isDetect):
+	#Variabler som holder styr på tiden
+	#ta inn filmetid (0-60s), 
+	#variabel som sjekker om det fortsatt er alarmstatus /bool
+		#isDetect er enten 0 eller 1
+	global stoppTrim
+	global startTrim
+	global duration
+	global detectionPhase
+	global detectionArray
+	global detectionAmount
+
+	if isDetect == 1:
+		if detectionPhase == False:
+			print(" >[] Detection []<")
+			#startTrim = counter-1 må byttes ut med tidspunktet til framen.
+			startTrim = frame.name
+			#konverter navnet til faktisk tid
+			detectionPhase = True
+		
+			
+		elif detectionPhase == True:
+			print("Currently in detectionPhase, not storing a new startTrim")
+			
+		
+	else:
+		if detectionPhase == False:
+			print("No detection")
+
+		elif detectionPhase == True:
+			print(" >[X] Deteksjon avsluttet [X]< ")
+			detectionPhase = False
+			#stoppTrim = counter+1 bytt
+			#duration = stoppTrim - startTrim bytt
+			#Få tak i frame name evt?
+			trimName = "Detect_"+str(detectionAmount)
+			#dette tallet må resetes ved nytt "intervall"
+			detectionAmount += 1
+			print("Trim videoen på tidspunk: ", startTrim, " (",startTrim+1,")")
+			print("Slutt trimmingen på tidspunkt: ", stoppTrim," (",stoppTrim-1,")")
+			print("Varighet: ", duration)
+			
+			
+			
+			detectionArray.append(VideoArrayObject(trimName, startTrim, stoppTrim, duration))
+			print(detectionArray[(detectionAmount-2)].name, "Added.")
+			
+			""""
+			videoName = "test15.mp4"
+			trimmedVideo = "[TRIMMED]"+videoName
+			#Videoen som tak tas i heter ikke altid "test15.mp4"
+			#-loglevel quiet fjerner ALL output fra ffmpeg
+			########Ikke behandle det her; vent til alle detekteringssteder fra array er med. 1x60s loop
+			os.system("ffmpeg -loglevel quiet -i " + videoName + " -ss 00:00:" + str(startTrim) + " -t 00:00:" + str(duration) + " -async 1 -strict -2 " + trimmedVideo)
+			#Lage objekter som har dette som properties, lagre objektene i en array(?), foreach/in
+			"""
+## obs, filstier *kan* variere
+##Lag mappe for neste intervall
+def egenFunk():
+	global test
+	while(test < 3): #while som simulerer tre intervaller med filming&frames
+		i = datetime.now()
+		CurrentVideo = str(i.strftime('%Y_%m_%d_%H:%M:%S:%f'))
+		print(CurrentVideo)
+		####os.system("mkdir /home/nvidia/Bachelor/Frames/" + CurrentVideo)
+		obj = VideoObj(CurrentVideo, False)
+		
+		#TODO: Film --> Henrik_Code() bruker CurrentVideo 
+		print("")
+		#TODO(?):vent til alle frames er filmet ferdig; 
+		
+		#print("Videoen er ferdiglagd, setter status = True og objektet blir lagt til i CompletedVideoQueue")
+		setattr(obj, 'finished', 'True')
+		CompletedVideoQueue.enqueue(obj) ###lage objektet her inne i steden for
+		##^ Denne køen blir sjekket lengre nede i mainProg
+		#print("Filmet ferdig: ",thisObject.finished)
+		
+		time.sleep(1.1)# For test
+		test += 1
+	mainProg()
+	#Skriv ut køen
+	#while test2 < videoQueue.size():
+	#	temp = videoQueue.dequeue()
+	#	print(temp.name +" : "+ temp.finished)
+##Hvis det er to video-intervaller i Videoer-mappen; start analyse på første//Kan byttes ut med noe annet så lenge vi ikke begynner før et helt intervall er ferdig.
+	#if len(os.listdir('/home/nvidia/Bachelor/Videoer')) > 1:
+		#todo: for			
+			#if end=".mp4"
+
+def mainProg():
+	#if len(os.listdir('/home/nvidia/Bachelor/Videoer')) > 1: #Mulig en bare kan(og burde) se bort i denne 99% sure
+		if not CompletedVideoQueue.isEmpty():
+			print("Fant video")
+			#while test2 < CompletedVideoQueue.size():
+			#	temp = CompletedVideoQueue.dequeue()
+			#	print(temp.name +" : "+ temp.finished)
+			####video = CompletedVideoQueue.dequeue() #Alle videoer som ligger i denne er ferdig behandlet.
+			####path = "/home/nvidia/Bachelor/Frames/"+video.name
+			testpath = "/home/nvidia/Bachelor/Frames/Bilder"
+			#print(path)
+			#print(orgNavn)
+			##Gå igjennom tilhørende Frames-folder
+			#for frame in os.listdir(testpath):
+			####if frame.lower().endswith('mp4'):
+					####print(MathiasAlg(frame))
+					#JonasAlg(MathiasAlg(frame))
+					#print("frame")
+			
+			#orgVideo = video.name
+			#orgVideoPath = "/home/nvidia/Bachelor/Videoer/" + orgVideo
+			#print(orgVideoPath)
+			#for detection in detectionArray:
+			#_Gjør noe med tindspunktene start(), dura() Sjekk navn, obj
+			#	os.system("ffmpeg -i " + orgVideoPath + " -ss 00:00:04 -t 00:00:01 -async 1 -strict -2 /home/nvidia/Bachelor/Trims/[T]"+detection.name)
+			
+			#Vent?
+			#for trim in os.listdir("home/nvidia/Bachelor/Trims"):
+				#TODO Send over til Hessdalen.no MathiasCode?
+			
+			####os.system("rm -rv /home/nvidia/Bachelor/Videoer/"+orgVideo) # Benytt -rf til slutt
+			####os.system("rm -v /home/nvidia/Bachelor/Trims/*")
+			####os.system("rm -rv /home/nvidia/Bachelor/Frames/"+orgVideo)
+
+		#else:
+		#	print("Ingen videoer i køen.")
+
+
