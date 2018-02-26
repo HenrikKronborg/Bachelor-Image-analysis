@@ -3,7 +3,7 @@
 import cv2
 import numpy as np
 
-capture = cv2.VideoCapture("test.mp4")
+capture = cv2.VideoCapture("../Videoer/26-02-2018_12.19.22.mp4")
 
 #fourcc = cv2.VideoWriter_fourcc(*'X264')
 out = cv2.VideoWriter("output.mp4", 0x00000021, 30.0, (1024,768))
@@ -25,4 +25,4 @@ while(capture.isOpened()):
 	
 capture.release()
 out.release()
-dv2.destroyAllWindows()
+cv2.destroyAllWindows()

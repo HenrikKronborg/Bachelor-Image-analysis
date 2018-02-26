@@ -63,8 +63,8 @@ videoName = ""
 startTime = 0.0
 stopTime = 0.0
 frameCounter = 1
-captureFrameRate = 300
-timeOfFrame = 0
+#captureFrameRate = 300
+#timeOfFrame = 0
 frameStarter = 0
 frameEnder = 0
 
