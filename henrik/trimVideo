@@ -1,0 +1,27 @@
+#!/usr/bin/env python3
+
+import cv2
+import numpy as np
+
+capture = cv2.VideoCapture("test.mp4")
+
+#fourcc = cv2.VideoWriter_fourcc(*'X264')
+out = cv2.VideoWriter("output.mp4", 0x00000021, 30.0, (1024,768))
+
+startFrame = 30
+endFrame = 60
+
+count = 0
+while(capture.isOpened()):
+	ret, frame = capture.read()
+	
+	if ret == False:
+		break
+	
+	if(count >= startFrame and count <= endFrame):
+		out.write(frame)
+		
+	count += 1
+	
+capture.release()
+out.release()
