@@ -1,9 +1,18 @@
-#!/urs/bin/python
-import os
-import time
-from datetime import datetime
+#!/usr/bin/env python3
+
 import cv2
 import numpy as np
+import time
+import os
+import math
+import sys
+import gi
+from datetime import datetime, timedelta
+
+gi.require_version("Tcam", "0.1")
+gi.require_version("Gst", "1.0")
+
+from gi.repository import Tcam, Gst
 
 #20.02 test lappeteppe
 #23.02 lappeteppe good to go
@@ -177,6 +186,7 @@ def egenFunk():
 	##TODO: Kjøre dette som en egen prosess/tråd
 	global test
 	while(test < 2): #while som simulerer to intervaller med filming&frames
+		
 		i = datetime.now()
 		#CurrentVideo = str(i.strftime('%Y_%m_%d_%H:%M:%S:%f'))
 		##^Bytt ut med ønsket tidsformat over
@@ -201,6 +211,8 @@ def egenFunk():
 		
 		time.sleep(1.1)# For test
 		test += 1
+	
+	
 	##_mainProg behøver ikke ligge inne i her
 	mainProg()
 	#Skriv ut køen

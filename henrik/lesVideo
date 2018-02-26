@@ -7,8 +7,8 @@ import os
 import math
 from datetime import datetime, timedelta
 
-video = "21-02-2018_09:42:30";
-datetime_object = datetime.strptime(video, "%d-%m-%Y_%H:%M:%S");
+video = "21-02-2018_09.42.30";
+datetime_object = datetime.strptime(video, "%d-%m-%Y_%H.%M.%S");
 
 capture = cv2.VideoCapture("../Videoer/" + video + ".mp4")
 mask = cv2.imread("mask.png")
@@ -48,9 +48,9 @@ def analyseVideo(frame, frameNumber):
 		
 		frameTime = datetime_object + timedelta(seconds=frameNumber / 30)
 		
-		if not(os.path.exists("../Detections/Pictures/" + str(frameTime.strftime("%d-%m-%Y_%H:%M:%S")) + ".jpg")):
-			cv2.imwrite("../Detections/Pictures/" + str(frameTime.strftime("%d-%m-%Y_%H:%M:%S")) + ".jpg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
-			cv2.imwrite("../Detections/Pictures/" + str(frameTime.strftime("%d-%m-%Y_%H:%M:%S")) + "_marked.jpg", im_with, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
+		if not(os.path.exists("../Detections/Pictures/" + str(frameTime.strftime("%d-%m-%Y_%H.%M.%S")) + ".jpg")):
+			cv2.imwrite("../Detections/Pictures/" + str(frameTime.strftime("%d-%m-%Y_%H.%M.%S")) + ".jpg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
+			cv2.imwrite("../Detections/Pictures/" + str(frameTime.strftime("%d-%m-%Y_%H.%M.%S")) + "_marked.jpg", im_with, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
 		
 		return 1
 

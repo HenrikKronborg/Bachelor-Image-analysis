@@ -1,6 +1,9 @@
 #!/bin/bash
-# License: MIT. See license file in root directory
-# Copyright(c) JetsonHacks (2017)
+### Remove OpenCV4Tegra
+sudo apt-get purge libopencv4tegra-python libopencv4tegra-dev \
+                     libopencv4tegra
+sudo apt-get purge libopencv4tegra-repo
+
 cd $HOME
 sudo apt-get install -y \
     libglew-dev \

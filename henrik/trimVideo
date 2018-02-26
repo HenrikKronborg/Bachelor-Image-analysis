@@ -25,3 +25,4 @@ while(capture.isOpened()):
 	
 capture.release()
 out.release()
+dv2.destroyAllWindows()
