@@ -14,3 +14,10 @@ Program
   Threading
   Fikse filstier
   Try / catch på filming av video
+  Lese config fil ved oppstart
+    Hvor lenge det skal filmes
+    Hvor lenge før/etter film
+    Pikselstørrelse detect
+    Farger
+    FPS
+    

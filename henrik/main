@@ -46,33 +46,20 @@ class VideoArrayObject(object):
 			self.name = name
 			self.start = startT
 			self.stop = stopT
-			
 
-test = 0
-test2 = 0
-#stoppTrim = 0
-#startTrim = 0
-duration = 0.0
 CompletedVideoQueue = Queue()
 detectionPhase = False
 detectionArray = []
 detectionAmount = 0
 video = ""
-antNuller = 0
-antEnere = 0
 videoName = ""
 startTime = 0.0
 stopTime = 0.0
 frameNumber = 0
-captureFrameRate = 300
-timeOfFrame = 0
-frameStarter = 0
-frameEnder = 0
 
 def read():
 	global videoName
 	video = videoName
-	#video = "21-02-2018_09.42.30"; #endre til å hente fra videoarray / ta inn som parameter
 	datetime_object = datetime.strptime(video, "%d-%m-%Y_%H-%M-%S")
 
 	capture = cv2.VideoCapture("../Videoer/" + video + ".mp4")
