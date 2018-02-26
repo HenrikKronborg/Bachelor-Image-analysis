@@ -6,25 +6,23 @@ import cv2
 import numpy as np
 
 #20.02 test lappeteppe
-img_mask = "/home/nvidia/Bachelor/a.png"
-
-
+#23.02 lappeteppe good to go
 
 class Queue:
-    def __init__(self):
-        self.items = []
+	def __init__(self):
+		self.items = []
 
-    def isEmpty(self):
-        return self.items == []
+	def isEmpty(self):
+		return self.items == []
 
-    def enqueue(self, item):
-        self.items.insert(0,item)
+	def enqueue(self, item):
+		self.items.insert(0,item)
 
-    def dequeue(self):
-        return self.items.pop()
+	def dequeue(self):
+		return self.items.pop()
 
-    def size(self):
-        return len(self.items)
+	def size(self):
+		return len(self.items)
 
 #For køen
 class VideoObj(object):
@@ -35,146 +33,151 @@ class VideoObj(object):
 		self.finished = status
 
 class VideoArrayObject(object):
-		start = 0
-		stopp = 0
-		duration = 0
-		def __init__(self, name, startT, stoppT, dura):
+		start = 0.0
+		stopp = 0.0
+		duration = 0.0
+		startFrame = 0
+		endFrame = 0
+		def __init__(self, name, startT, stoppT, dura, sFrame, eFrame):
 			self.name = name
 			self.start = startT
 			self.stopp = stoppT
 			self.duration = dura
+			self.startFrame = sFrame
+			self.endFrame = eFrame
+			
 
 
 test = 0
 test2 = 0
 stoppTrim = 0
 startTrim = 0
-duration = 0
+duration = 0.0
 CompletedVideoQueue = Queue()
 detectionPhase = False
 detectionArray = []
 detectionAmount = 0
+video = ""
+antNuller = 0
+antEnere = 0
+videoName = ""
+startTime = 0.0
+stopTime = 0.0
+frameCounter = 1
+captureFrameRate = 300
+timeOfFrame = 0
+frameStarter = 0
+frameEnder = 0
 
 def MathiasAlg():
-var = 
-capture = cv2.VideoCapture(var)
-	while(True):
+	global videoName
+	global frameCounter
+	filePath = "Videoer/"+videoName
+	capture = cv2.VideoCapture(filePath)
+	print("MathiasAlg:",filePath)
+	while(capture.isOpened()):
 		ret, frame = capture.read()
-		gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-	 	#cv2.imshow("frame", gray)
-	 
-		if cv2.waitKey(1) & 0xFF == ord("q"):
-	 
+		if ret == False:
 			break
-	 
-		cv2.imwrite('a.png', gray)
-		#print(gray)
-		print(asd("/home/nvidia/Bachelor/a.png"))
-	   # os.popen('Del /F C:\\Users\\Mathias\\AppData\\Local\\Programs\\Python\\Python36-32\\a.png')	 
-		#cv2.waitKey(0)
+			
+		cv2.imwrite('a.png', frame)
+
+		AlarmPhase(asd("/home/nvidia/Bachelor/a.png"))
+		frameCounter += 1
 
 	capture.release()
 	cv2.destroyAllWindows()
+	print("Antall nuller: " + str(antNuller))
+	print("Antall enere: " + str(antEnere))
 	
 	
 def asd(object):
+	#print(object)
+	#print(image_path)
+	im = cv2.imread(object, cv2.IMREAD_GRAYSCALE)
+	retval, threshold = cv2.threshold(im, 200, 255, cv2.THRESH_BINARY_INV)	 
+	params = cv2.SimpleBlobDetector_Params()
+	params.minThreshold = 100; 
+	params.maxThreshold = 260;
+	params.filterByColor = False
+	params.blobColor = 255 #høgt tall er hvitt, små tall er mørkt 
+	params.filterByArea = True 
+	params.minArea = 30 #Sette størrelsen på piksel til stjerne
+	params.maxArea = 4000
+	params.filterByCircularity = False #Disse må være med, blir satt standard til true
+	params.filterByConvexity = False
+	params.filterByInertia = False
+	detector = cv2.SimpleBlobDetector_create(params) 
+	keypoints = detector.detect(threshold)
  
-    image_path = img_mask
-    print(object)
-    print(image_path)
-    im = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-    retval, threshold = cv2.threshold(im, 200, 255, cv2.THRESH_BINARY_INV)     
-    params = cv2.SimpleBlobDetector_Params()
-    params.minThreshold = 100; 
-    params.maxThreshold = 260;
-    params.filterByColor = False
-    params.blobColor = 255 #høgt tall er hvitt, små tall er mørkt 
-    params.filterByArea = True 
-    params.minArea = 30 #Sette størrelsen på piksel til stjerne
-    params.maxArea = 4000
-    params.filterByCircularity = False #Disse må være med, blir satt standard til true
-    params.filterByConvexity = False
-    params.filterByInertia = False
-    detector = cv2.SimpleBlobDetector_create(params) 
-    keypoints = detector.detect(threshold)
+	if  not keypoints:
+		#print("Tom")
+		global antNuller
+		antNuller += 1
+		return 0
  
-    if  not keypoints:
-        print("Tom")
-        return 0
- 
-    else:
-        print("detekt")
-        im_with = cv2.drawKeypoints(threshold, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-        #cv2.imshow("DETEKSJON", im_with)
-        #cv2.waitKey(0)
-        cv2.destroyAllWindows()
-        return 1
+	else:
+		print("Detection")#
+		im_with = cv2.drawKeypoints(threshold, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+		cv2.destroyAllWindows()
+		global antEnere
+		antEnere += 1
+		return 1
 
 def AlarmPhase(isDetect):
-	#Variabler som holder styr på tiden
-	#ta inn filmetid (0-60s), 
-	#variabel som sjekker om det fortsatt er alarmstatus /bool
-		#isDetect er enten 0 eller 1
+	#isDetect er enten 0 eller 1
 	global stoppTrim
 	global startTrim
 	global duration
 	global detectionPhase
 	global detectionArray
 	global detectionAmount
+	global timeOfFrame
+	global startTime
+	global stopTime
+	global frameCounter
+	global frameStarter
+	global frameEnder
 
 	if isDetect == 1:
 		if detectionPhase == False:
-			print(" >[] Detection []<")
-			#startTrim = counter-1 må byttes ut med tidspunktet til framen.
-			startTrim = frame.name
-			#konverter navnet til faktisk tid
+			frameStarter = frameCounter
+			print(" >[] Detection []< in", videoName)
+			#print(videoName)
+			startTime = (frameCounter/30)-1
+			print("Starttime:",startTime)
 			detectionPhase = True
-		
 			
 		elif detectionPhase == True:
 			print("Currently in detectionPhase, not storing a new startTrim")
 			
-		
 	else:
 		if detectionPhase == False:
-			print("No detection")
-
+			print("No detection")#do nothing
+			
 		elif detectionPhase == True:
+			frameEnder = frameCounter
 			print(" >[X] Deteksjon avsluttet [X]< ")
+			stopTime = frameCounter/30
+			print("stopTime:",stopTime)
+			duration = (stopTime - startTime)+1
 			detectionPhase = False
-			#stoppTrim = counter+1 bytt
-			#duration = stoppTrim - startTrim bytt
-			#Få tak i frame name evt?
-			trimName = "Detect_"+str(detectionAmount)
-			#dette tallet må resetes ved nytt "intervall"
 			detectionAmount += 1
-			print("Trim videoen på tidspunk: ", startTrim, " (",startTrim+1,")")
-			print("Slutt trimmingen på tidspunkt: ", stoppTrim," (",stoppTrim-1,")")
+			print("Trim videoen på tidspunk: ", startTime, " (",startTime-1,"), Frame# : ",frameStarter)
+			print("Slutt trimmingen på tidspunkt: ", stopTime," (",stopTime+1,") Frame# : ",frameEnder)
 			print("Varighet: ", duration)
+			detectionArray.append(VideoArrayObject(videoName, startTime, stopTime, duration, frameStarter, frameEnder))
+			print(detectionArray[(detectionAmount-2)].name, "Added to array.")
 			
 			
-			
-			detectionArray.append(VideoArrayObject(trimName, startTrim, stoppTrim, duration))
-			print(detectionArray[(detectionAmount-2)].name, "Added.")
-			
-			""""
-			videoName = "test15.mp4"
-			trimmedVideo = "[TRIMMED]"+videoName
-			#Videoen som tak tas i heter ikke altid "test15.mp4"
-			#-loglevel quiet fjerner ALL output fra ffmpeg
-			########Ikke behandle det her; vent til alle detekteringssteder fra array er med. 1x60s loop
-			os.system("ffmpeg -loglevel quiet -i " + videoName + " -ss 00:00:" + str(startTrim) + " -t 00:00:" + str(duration) + " -async 1 -strict -2 " + trimmedVideo)
-			#Lage objekter som har dette som properties, lagre objektene i en array(?), foreach/in
-			"""
-## obs, filstier *kan* variere
-##Lag mappe for neste intervall
 def egenFunk():
 	global test
-	while(test < 3): #while som simulerer tre intervaller med filming&frames
+	while(test < 2): #while som simulerer tre intervaller med filming&frames
 		i = datetime.now()
 		#CurrentVideo = str(i.strftime('%Y_%m_%d_%H:%M:%S:%f'))
-		CurrentVideo = "2018_02_21_09:42:30"
+		CurrentVideo = "2018_02_21_09:42:30" + ".mp4"
 		print(CurrentVideo)
+
 		####os.system("mkdir /home/nvidia/Bachelor/Frames/" + CurrentVideo)
 		obj = VideoObj(CurrentVideo, False)
 		
@@ -182,7 +185,7 @@ def egenFunk():
 		print("")
 		#TODO(?):vent til alle frames er filmet ferdig; 
 		
-		#print("Videoen er ferdiglagd, setter status = True og objektet blir lagt til i CompletedVideoQueue")
+		print("Videoen er ferdiglagd, setter status = True og objektet blir lagt til i CompletedVideoQueue")
 		setattr(obj, 'finished', 'True')
 		CompletedVideoQueue.enqueue(obj) ###lage objektet her inne i steden for
 		##^ Denne køen blir sjekket lengre nede i mainProg
@@ -195,48 +198,44 @@ def egenFunk():
 	#while test2 < videoQueue.size():
 	#	temp = videoQueue.dequeue()
 	#	print(temp.name +" : "+ temp.finished)
-##Hvis det er to video-intervaller i Videoer-mappen; start analyse på første//Kan byttes ut med noe annet så lenge vi ikke begynner før et helt intervall er ferdig.
-	#if len(os.listdir('/home/nvidia/Bachelor/Videoer')) > 1:
-		#todo: for			
-			#if end=".mp4"
+
 
 def mainProg():
 	#if len(os.listdir('/home/nvidia/Bachelor/Videoer')) > 1: #Mulig en bare kan(og burde) se bort i denne 99% sure
 		if not CompletedVideoQueue.isEmpty():
 			print("Fant video")
-			#while test2 < CompletedVideoQueue.size():
-			#	temp = CompletedVideoQueue.dequeue()
-			#	print(temp.name +" : "+ temp.finished)
+			
+			global videoName
+			global frameCounter
 			video = CompletedVideoQueue.dequeue() #Alle videoer som ligger i denne er ferdig behandlet.
-			path = "/home/nvidia/Bachelor/Frames/"+video.name
-			testpath = "/home/nvidia/Bachelor/Frames/Bilder"
-			#print(path)
-			#print(orgNavn)
-			##Gå igjennom tilhørende Frames-folder
-			#for frame in os.listdir(testpath):
-			####if frame.lower().endswith('mp4'):
-					####print(MathiasAlg(frame))
-					#JonasAlg(MathiasAlg(frame))
-					#print("frame")
+			videoName = video.name
+			print(videoName)
+			MathiasAlg()
 			
 			#orgVideo = video.name
-			#orgVideoPath = "/home/nvidia/Bachelor/Videoer/" + orgVideo
+			orgVideoPath = "/home/nvidia/Bachelor/Videoer/" + videoName
 			#print(orgVideoPath)
-			#for detection in detectionArray:
-			#_Gjør noe med tindspunktene start(), dura() Sjekk navn, obj
-			#	os.system("ffmpeg -i " + orgVideoPath + " -ss 00:00:04 -t 00:00:01 -async 1 -strict -2 /home/nvidia/Bachelor/Trims/[T]"+detection.name)
+			print("Antall frames i videoen:",frameCounter)
+			print("Antall deteksjoner:",detectionAmount)
+			print("Filsti:", orgVideoPath)
+			print("")
+			print("Deteksjoner (array):")
+			for detection in detectionArray:
+				print("Navn:",detection.name,", starttidspunkt:",detection.start,", stopptidspunkt:",detection.stopp,", duration:",detection.duration,", startframe:",detection.startFrame,", endframe:", detection.endFrame)
+			####TRIM FILM
+			####TODO: (def?)Reset alle variabler
 			
+			#_Gjør noe med tindspunktene start(), dura() Sjekk navn, obj
+				#os.system("ffmpeg -i " + str(orgVideoPath) + " -ss " +  str(detection.start) + " -t " + str(detection.duration) + " -async 1 -strict -2 /home/nvidia/Bachelor/Trims/[T]"+detection.name)
+				#print("Ferdig")
 			#Vent?
 			#for trim in os.listdir("home/nvidia/Bachelor/Trims"):
 				#TODO Send over til Hessdalen.no MathiasCode?
 			
-			####os.system("rm -rv /home/nvidia/Bachelor/Videoer/"+orgVideo) # Benytt -rf til slutt
-			####os.system("rm -v /home/nvidia/Bachelor/Trims/*")
-			####os.system("rm -rv /home/nvidia/Bachelor/Frames/"+orgVideo)
+			####os.system("rm -rv /home/nvidia/Bachelor/Videoer/"+videoName) # Benytt -rf til slutt
+			####os.system("rm -v /home/nvidia/Bachelor/Detections/Trims/*")
+			####os.system("rm -rv /home/nvidia/Bachelor/Frames/"+videoName)
 
-		#else:
-		#	print("Ingen videoer i køen.")
-		
-MathiasAlg()
+egenFunk()
 
 
