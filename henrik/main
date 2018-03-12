@@ -68,7 +68,7 @@ def getSettings():
 	for line in f:
 		settings.append(line.strip("\n"))
 	f.close()
-	# 0: format, 1: fps, 2: sekund før hendelse, 3: sekund etter hendelse
+	# 0: format, 1: fps, 2: sekund før hendelse, 3: sekund etter hendelse, 4: piksel detect min, 5: piksel detect maks, 6: tekst overlay
 
 def read():
 	global videoName
@@ -115,11 +115,11 @@ def analyse(frame, frameNumber, datetime_object, thresholdMask):
 	params.minThreshold = 100
 	params.maxThreshold = 260
 	params.filterByColor = False
-	params.blobColor = 255 #høgt tall er hvitt, små tall er mørkt
+	params.blobColor = 255
 	params.filterByArea = True
-	params.minArea = 30 #Sette størrelsen på piksel til stjerne
-	params.maxArea = 40000
-	params.filterByCircularity = False #Disse må være med, blir satt standard til true
+	params.minArea = int(settings[4])
+	params.maxArea = int(settings[5])
+	params.filterByCircularity = False
 	params.filterByConvexity = False
 	params.filterByInertia = False
 
@@ -136,6 +136,7 @@ def analyse(frame, frameNumber, datetime_object, thresholdMask):
 		return 1
 
 def detection(isDetect):
+	global detectionPhase
 	global startTime
 	global stopTime
 	global frameDetect
@@ -174,14 +175,23 @@ def record():
 	
 	filmDuration = 5 #sekunder
 	
+	if settings[1] == '15':
+		framerate = '15/1'
+	elif settings[1] == '7.5':
+		framerate = '15/2'
+	elif settings[1] == '3.75':
+		framerate = '15/3'
+	else:
+		framerate = '30/1'
+	
 	pipeline = Gst.parse_launch('tcamsrc num-buffers=' + str((filmDuration * 30)) +' serial=4810628 '
 				+ '! tcamautoexposure '
 				+ '! tcamwhitebalance '
 				+ '! tcamautofocus '
-				+ '! video/x-bayer,format=bggr,width=1024,height=768,framerate=30/1 '	
+				+ '! video/x-bayer,format=bggr,width=1024,height=768,framerate=' + framerate
 				+ '! capssetter join=false caps="video/x-bayer,format=gbrg" '
 				+ '! bayer2rgb '
-				+ '! clockoverlay time-format="%d/%m/%Y %H:%M:%S" text="Hessdalen " valignment=bottom xpad=0 ypad=0 shaded-background=true font-desc="sans, 6" '
+				+ '! clockoverlay time-format="%d/%m/%Y %H:%M:%S" text="' + settings[6] + '" valignment=bottom xpad=0 ypad=0 font-desc="sans, 6" '
 				+ '! videoconvert '
 				+ '! omxh264enc '
 				+ '! mp4mux '
@@ -226,7 +236,7 @@ def trim():
 					break
 				
 				#muligens juster til 60 på begge
-				if(count >= (detection.start - (settings[2] * 30)) and count <= (detection.stop + (settings[3] * 30))):
+				if(count >= (detection.start - (int(settings[2]) * 30)) and count <= (detection.stop + (int(settings[3]) * 30))):
 					out.write(frame)
 					
 				count += 1
@@ -236,10 +246,11 @@ def trim():
 			cv2.destroyAllWindows()
 		
 		#upload()
-		
+		'''
 		os.system("rm -r ../Videoer/" + str(videoname) + ".mp4")
 		os.system("rm -v ../Detections/Pictures/*")
 		os.system("rm -v ../Detections/Trims/*")
+		'''
 		
 		####TODO: (def?)Reset alle variabler som f.eks. blir ++'et. Ex: frameNumber
 		
@@ -260,6 +271,10 @@ def upload():
 if __name__ == "__main__":
 	getSettings()
 	
+	record()
+	read()
+	
+	'''
 	while(True):
 		recordProcess = Process(target=record)
 		readProcess = Process(target=read)
@@ -273,3 +288,4 @@ if __name__ == "__main__":
 		readProcess.terminate()
 		
 		time.sleep(10)
+	'''
