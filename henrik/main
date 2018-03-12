@@ -8,7 +8,10 @@ import math
 import sys
 import gi
 from datetime import datetime, timedelta
-#import datetime
+from multiprocessing import *
+
+#from paramiko import SSHClient
+#from scp import SCPClient
 
 gi.require_version("Tcam", "0.1")
 gi.require_version("Gst", "1.0")
@@ -57,6 +60,16 @@ startTime = 0.0
 stopTime = 0.0
 frameNumber = 0
 
+def getSettings():
+	global settings
+	f = open("config.txt", "r")
+	settings = []
+	
+	for line in f:
+		settings.append(line.strip("\n"))
+	f.close()
+	# 0: format, 1: fps, 2: sekund før hendelse, 3: sekund etter hendelse
+
 def read():
 	global videoName
 	video = videoName
@@ -75,7 +88,7 @@ def read():
 		if ret == False:
 			break
 		
-		AlarmPhase(analyse(frame, frameNumber, datetime_object, thresholdMask))
+		detection(analyse(frame, frameNumber, datetime_object, thresholdMask))
 		frameNumber += 1
 
 	capture.release()
@@ -99,17 +112,13 @@ def analyse(frame, frameNumber, datetime_object, thresholdMask):
 	maskMultiply = cv2.bitwise_and(threshold, thresholdMask)
 	
 	params = cv2.SimpleBlobDetector_Params()
-	
 	params.minThreshold = 100
 	params.maxThreshold = 260
-
 	params.filterByColor = False
 	params.blobColor = 255 #høgt tall er hvitt, små tall er mørkt
-
 	params.filterByArea = True
 	params.minArea = 30 #Sette størrelsen på piksel til stjerne
 	params.maxArea = 40000
-
 	params.filterByCircularity = False #Disse må være med, blir satt standard til true
 	params.filterByConvexity = False
 	params.filterByInertia = False
@@ -126,7 +135,7 @@ def analyse(frame, frameNumber, datetime_object, thresholdMask):
 
 		return 1
 
-def AlarmPhase(isDetect):
+def detection(isDetect):
 	global startTime
 	global stopTime
 	global frameDetect
@@ -193,13 +202,12 @@ def trim():
 	if not CompletedVideoQueue.isEmpty():
 		print("Fant video")
 		
+		global settings
 		global videoName
 		global frameNumber
 		video = CompletedVideoQueue.dequeue() #Alle videoer som ligger i denne er ferdig behandlet.
 		videoName = video.name
-		print(videoName)
 		
-		print("Deteksjoner (array):")
 		for detection in detectionArray:
 			print("Navn:",detection.name,", starttidspunkt:",detection.start,", stopptidspunkt:",detection.stop)
 			
@@ -218,7 +226,7 @@ def trim():
 					break
 				
 				#muligens juster til 60 på begge
-				if(count >= (detection.start - 30) and count <= (detection.stop + 30)):
+				if(count >= (detection.start - (settings[2] * 30)) and count <= (detection.stop + (settings[3] * 30))):
 					out.write(frame)
 					
 				count += 1
@@ -226,26 +234,42 @@ def trim():
 			capture.release()
 			out.release()
 			cv2.destroyAllWindows()
-			
+		
+		#upload()
+		
+		os.system("rm -r ../Videoer/" + str(videoname) + ".mp4")
+		os.system("rm -v ../Detections/Pictures/*")
+		os.system("rm -v ../Detections/Trims/*")
+		
 		####TODO: (def?)Reset alle variabler som f.eks. blir ++'et. Ex: frameNumber
 		
 		#for trim in os.listdir("home/nvidia/Bachelor/Trims"):
 			#TODO Send over til Hessdalen.no MathiasCode?
-		
-		####os.system("rm -rv /home/nvidia/Bachelor/Videoer/"+videoName) # Benytt -rf til slutt
-		####os.system("rm -v /home/nvidia/Bachelor/Detections/Trims/*")
-		####os.system("rm -rv /home/nvidia/Bachelor/Frames/"+videoName)
-		
-		#upload()
-		#slett shit
 
 def upload():
-	time.sleep(2)
+	ssh = SSHClient()
+	ssh.load_system_host_keys()
+	ssh.connect("hessdalen.hiof.no")
+	
+	scp = SCPClient(ssh.get_transport())
+
+	scp.put("test.txt", "test2.txt")
+
+	scp.close()
 
 if __name__ == "__main__":
-	record()
+	getSettings()
 	
-	read()
-	
-	#while(True):
-		#start alle tråder (record og trim)
+	while(True):
+		recordProcess = Process(target=record)
+		readProcess = Process(target=read)
+		
+		recordProcess.start()
+		readProcess.start()
+		recordProcess.join()
+		readProcess.join()
+		
+		recordProcess.terminate()
+		readProcess.terminate()
+		
+		time.sleep(10)
