@@ -3,18 +3,16 @@ import numpy as np
 import os
 from glob import glob
 
-img_mask = "C:\\Users\\Mathias\\AppData\\Local\\Programs\\Python\\Python36-32\\Bilder\\"
-def asd(object):
-    image_path = img_mask + object
-    print(image_path)
+def asd():
     #im = cv2.imread("Hess1.jpg", cv2.IMREAD_GRAYSCALE)
     #im = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-    im = cv2.imread(image_path)
-    im = cv2.cvtColor(im, cv2.COLOR_BGR2HSV)
-   # hue ,saturation ,value = cv2.split(im)
+    im = cv2.imread("resultat.png")
+    gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+    #im = cv2.cvtColor(im, cv2.COLOR_BGR2HSV)
+    #hue ,saturation ,value = cv2.split(im)
     
-    retval, threshold = cv2.threshold(im, 137, 255, cv2.THRESH_BINARY_INV)
-    medianFiltered = cv2.medianBlur(threshold,3)
+    retval, threshold = cv2.threshold(gray, 40, 255, cv2.THRESH_BINARY_INV)
+    medianFiltered = cv2.medianBlur(threshold, 5)
 
     params = cv2.SimpleBlobDetector_Params()
     
@@ -46,5 +44,4 @@ def asd(object):
         cv2.destroyAllWindows()
         return 1
 
-for fn in os.listdir(img_mask):
-    print(asd(fn))
+asd()

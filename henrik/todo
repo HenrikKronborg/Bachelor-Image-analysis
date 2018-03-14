@@ -1,9 +1,3 @@
-TODO
-
-Nettside
-	Innstilling for pixelstørrelse detect
-		Min og max
-
 Program
 	Fikse når fenomen skjer på slutt av video
 	Fikse at samme sekund filnavn overskriver
@@ -14,9 +8,5 @@ Program
 	Threading
 	Fikse filstier
 	Try / catch på filming av video
-	Lese config fil ved oppstart
-		Hvor lenge før/etter film
-		Pikselstørrelse detect
-		Farger
-		FPS
 	Lagre nytt referansebilde når bruker ber om det
+		hver gang man leser gjennom film?

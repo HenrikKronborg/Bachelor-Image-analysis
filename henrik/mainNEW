@@ -1,0 +1,281 @@
+#!/usr/bin/env python3
+
+import cv2
+import numpy as np
+import time
+import os
+import math
+import sys
+import gi
+from datetime import datetime, timedelta
+from multiprocessing import *
+import subprocess
+import copy
+
+gi.require_version("Tcam", "0.1")
+gi.require_version("Gst", "1.0")
+
+from gi.repository import Tcam, Gst
+
+detectionPhase = False
+
+def getSettings():
+	f = open("config.txt", "r")
+	#settings = []
+	
+	currentLine = 0
+	for line in f:
+		settings[currentLine] = line.strip("\n")
+		currentLine += 1
+	f.close()
+	print("settings " + str(tall.value))
+	# 0: format, 1: fps, 2: sekund før hendelse, 3: sekund etter hendelse, 4: piksel detect min, 5: piksel detect maks, 6: tekst overlay
+
+def record():
+	#recorded.put("test" + str(tall.value))
+	tall.value += 5
+	#print("record " + str(tall.value))
+	
+	currentTime = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
+	filmDuration = 5 #sekunder
+	if settings[1] == '15':
+		framerate = '15/1'
+	elif settings[1] == '7.5':
+		framerate = '15/2'
+	elif settings[1] == '3.75':
+		framerate = '15/3'
+	else:
+		framerate = '30/1'
+	
+	Gst.init(sys.argv)
+	pipeline = Gst.Pipeline.new()
+	pipeline = Gst.parse_launch('tcamsrc num-buffers=' + str((filmDuration * 30)) +' serial=4810628 '
+				+ '! tcamautoexposure '
+				+ '! tcamwhitebalance '
+				+ '! tcamautofocus '
+				+ '! video/x-bayer,format=bggr,width=1024,height=768,framerate=' + framerate
+				+ '! capssetter join=false caps="video/x-bayer,format=gbrg" '
+				+ '! bayer2rgb '
+				+ '! clockoverlay time-format="%d/%m/%Y %H:%M:%S" text="' + settings[6] + '" valignment=bottom xpad=0 ypad=0 font-desc="sans, 6" '
+				+ '! videoconvert '
+				+ '! omxh264enc '
+				+ '! mp4mux '
+				+ '! filesink location=../Videoer/' + currentTime + '.mp4 ')
+	pipeline.set_state(Gst.State.PLAYING)
+	
+	time.sleep(filmDuration + 0.5)
+	
+	pipeline.set_state(Gst.State.NULL)
+	
+	videoName.value = currentTime
+	recorded.put(currentTime)
+	print(currentTime + " enqueuet")
+
+def read():
+	global detectionPhase
+	
+	if not recorded.empty():
+		datetime_object = datetime.strptime(videoName.value, "%d-%m-%Y_%H-%M-%S")
+		
+		capture = cv2.VideoCapture("../Videoer/" + videoName.value + ".mp4")
+		mask = cv2.imread("mask.png")
+
+		grayMask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
+		retvalMask, thresholdMask = cv2.threshold(grayMask, 0, 255, cv2.THRESH_BINARY_INV)
+		
+		frameNumber = 0
+		while(capture.isOpened()):
+			ret, frame = capture.read()
+			
+			if ret == False:
+				break
+			
+			if analyse(frame, frameNumber, datetime_object, thresholdMask) == 1:
+				if detectionPhase == False:
+					print("!!!!!!!!!!!!!!!! DETECTION!!!!!!!!!!!")
+					startTime = frameNumber
+					cv2.imwrite("../Detections/Pictures/" + str(frameTime.value.strftime("%d-%m-%Y_%H-%M-%S")) + ".jpg", frameSave.value, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
+					cv2.imwrite("../Detections/Pictures/" + str(frameTime.value.strftime("%d-%m-%Y_%H-%M-%S")) + "_marked.jpg", frameSaveMarked.value, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
+					detectionPhase = True
+				elif detectionPhase == True and frameNumber == 148:
+					stopTime = frameNumber
+					print("start " + str(startTime) + " slutt " + str(stopTime))
+					trim(startTime, stopTime)
+					print("AVBRYTER PGA SLUTT AV FILM!###########")
+				elif detectionPhase == True:
+					print(str(frameNumber) + " Currently in detectionPhase, not storing a new startTrim")
+					
+			else:
+				if detectionPhase == False:
+					print("No detection")
+				
+				elif detectionPhase == True:
+					stopTime = frameNumber
+					print("start " + str(startTime) + " slutt " + str(stopTime))
+					trim(startTime, stopTime)
+					detectionPhase = False
+					
+			frameNumber += 1
+
+		capture.release()
+		cv2.destroyAllWindows()
+		
+		print("ferdig read")
+		
+def analyse(frame, frameNumber, datetime_object, thresholdMask):
+	grayFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+	
+	retval, thresholded = cv2.threshold(grayFrame, 30, 255, cv2.THRESH_BINARY)
+
+	medianFiltered = cv2.medianBlur(thresholded,3)
+
+	_, contours, hierarchy = cv2.findContours(medianFiltered, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+	contour_list = []
+	for contour in contours:
+		area = cv2.contourArea(contour)
+		if area > 100:
+			contour_list.append(contour)
+	
+	if not contour_list:
+		return 0
+	else:
+		frameSaveMarked.value = copy.deepcopy(frame)
+		frameSaveMarked.value = cv2.drawContours(frameSaveMarked, contour_list,  -1, (0,0,255), 2)
+		frameSave.value = frame
+		
+		frameTime = datetime_object + timedelta(seconds=frameNumber / 30)
+		
+		return 1
+	
+	'''
+	grayFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+	retval, threshold = cv2.threshold(grayFrame, 200, 255, cv2.THRESH_BINARY)
+	
+	maskMultiply = cv2.bitwise_and(threshold, thresholdMask)
+	
+	params = cv2.SimpleBlobDetector_Params()
+	params.minThreshold = 100
+	params.maxThreshold = 260
+	params.filterByColor = False
+	params.blobColor = 255
+	params.filterByArea = True
+	params.minArea = int(settings[4])
+	params.maxArea = int(settings[5])
+	params.filterByCircularity = False
+	params.filterByConvexity = False
+	params.filterByInertia = False
+	
+	detector = cv2.SimpleBlobDetector_create(params)
+	keypoints = detector.detect(maskMultiply)
+	
+	if not keypoints:
+		return 0
+	else:
+		frameSave.value = frame
+		frameSaveMarked.value = cv2.drawKeypoints(frame, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+		
+		frameTime.value = datetime_object + timedelta(seconds=frameNumber / 30)
+
+		return 1
+	'''
+def trim(startTime, stopTime):
+	print("Fant video")
+	
+	datetime_object = datetime.strptime(videoName.value, "%d-%m-%Y_%H-%M-%S")
+	filename = datetime_object + timedelta(seconds=startTime / 30)
+	
+	capture = cv2.VideoCapture("../Videoer/" + str(videoName.value) + ".mp4")
+	#fourcc = cv2.VideoWriter_fourcc(*'X264')
+	out = cv2.VideoWriter("../Detections/Trims/" + str(filename.strftime("%d-%m-%Y_%H-%M-%S")) + ".mp4", 0x00000021, 30.0, (1024,768))
+
+	count = 0
+	while(capture.isOpened()):
+		ret, frame = capture.read()
+		
+		if ret == False:
+			break
+		
+		if(count >= (startTime - (int(settings[2]) * 30)) and count <= (stopTime + (int(settings[3]) * 30))):
+			out.write(frame)
+			
+		count += 1
+		
+	capture.release()
+	out.release()
+	cv2.destroyAllWindows()
+	
+	#upload()
+	'''
+	os.system("rm -r ../Videoer/" + str(videoname) + ".mp4")
+	os.system("rm -v ../Detections/Pictures/*")
+	os.system("rm -v ../Detections/Trims/*")
+	'''
+	
+	####TODO: (def?)Reset alle variabler som f.eks. blir ++'et. Ex: frameNumber
+	
+	#for trim in os.listdir("home/nvidia/Bachelor/Trims"):
+		#TODO Send over til Hessdalen.no MathiasCode?
+
+def upload():
+	p = subprocess.Popen(["scp", "test123.txt", "hessfiles2@freja.hiof.no:/files/hessfiles2/test"])
+	sts = os.waitpid(p.pid, 0)
+
+if __name__ == "__main__":
+	m = Manager()
+	settings = m.dict()
+	recorded = m.Queue();
+	videoName = m.Value('c', "")
+	
+	frameTime = m.Value('i', 1)
+	frameSave = m.Value('c', "")
+	frameSaveMarked = m.Value('c', "")
+	
+	tall = m.Value('i', 1)
+	streng = m.Value('c', "test")
+	
+	
+	settingsProcess = Process(target=getSettings)		
+	settingsProcess.start()
+	settingsProcess.join()
+	
+	#getSettings()
+	
+	while(True):
+		'''
+		recordProcess = Process(target=record)
+		recordProcess.start()
+		recordProcess.join()
+		'''
+		recordProcess = Process(target=record)
+		readProcess = Process(target=read)
+		
+		recordProcess.start()
+		readProcess.start()
+		recordProcess.join()
+		readProcess.join()
+		
+		recordProcess.terminate()
+		readProcess.terminate()
+		
+		print(settings[0])
+		print(tall.value)
+		print(streng.value)
+		print(recorded.qsize())
+		
+		print()
+		
+		'''
+		recordProcess = Process(target=record)
+		readProcess = Process(target=read)
+		
+		recordProcess.start()
+		readProcess.start()
+		recordProcess.join()
+		readProcess.join()
+		
+		recordProcess.terminate()
+		readProcess.terminate()
+		'''
+		
+		time.sleep(2)

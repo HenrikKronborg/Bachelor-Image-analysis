@@ -1,14 +1,5 @@
-#!/usr/bin/env python3
+import subprocess
+import os
 
-from paramiko import SSHClient
-from scp import SCPClient
-
-ssh = SSHClient()
-ssh.load_system_host_keys()
-ssh.connect("hessdalen.hiof.no")
-
-scp = SCPClient(ssh.get_transport())
-
-scp.put("test123.txt", "test2.txt")
-
-scp.close()
+p = subprocess.Popen(["scp", "test123.txt", "hessfiles2@freja.hiof.no:/files/hessfiles2/test"])
+sts = os.waitpid(p.pid, 0)

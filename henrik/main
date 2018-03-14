@@ -10,9 +10,6 @@ import gi
 from datetime import datetime, timedelta
 from multiprocessing import *
 
-#from paramiko import SSHClient
-#from scp import SCPClient
-
 gi.require_version("Tcam", "0.1")
 gi.require_version("Gst", "1.0")
 
@@ -60,6 +57,12 @@ startTime = 0.0
 stopTime = 0.0
 frameNumber = 0
 
+frame = ""
+frameNumber = ""
+datetime_object = ""
+thresholdMask = ""
+isDetect = 0
+
 def getSettings():
 	global settings
 	f = open("config.txt", "r")
@@ -71,34 +74,51 @@ def getSettings():
 	# 0: format, 1: fps, 2: sekund før hendelse, 3: sekund etter hendelse, 4: piksel detect min, 5: piksel detect maks, 6: tekst overlay
 
 def read():
-	global videoName
-	video = videoName
-	datetime_object = datetime.strptime(video, "%d-%m-%Y_%H-%M-%S")
-
-	capture = cv2.VideoCapture("../Videoer/" + video + ".mp4")
-	mask = cv2.imread("mask.png")
-
-	grayMask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
-	retvalMask, thresholdMask = cv2.threshold(grayMask, 0, 255, cv2.THRESH_BINARY_INV)
+	global CompletedVideoQueue
 	
-	frameNumber = 0
-	while(capture.isOpened()):
-		ret, frame = capture.read()
-		
-		if ret == False:
-			break
-		
-		detection(analyse(frame, frameNumber, datetime_object, thresholdMask))
-		frameNumber += 1
-
-	capture.release()
-	cv2.destroyAllWindows()
+	print("jonas")
+	print(CompletedVideoQueue.size())
 	
-	print("ferdig read")
-	trim()
-	print("ferdig trim")
+	if not CompletedVideoQueue.isEmpty():
+		print("henrik")
+		global videoName
+		global frame
+		global frameNumber
+		global datetime_object
+		global thresholdMask
+		
+		video = videoName
+		datetime_object = datetime.strptime(video, "%d-%m-%Y_%H-%M-%S")
 
-def analyse(frame, frameNumber, datetime_object, thresholdMask):
+		capture = cv2.VideoCapture("../Videoer/" + video + ".mp4")
+		mask = cv2.imread("mask.png")
+
+		grayMask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
+		retvalMask, thresholdMask = cv2.threshold(grayMask, 0, 255, cv2.THRESH_BINARY_INV)
+		
+		frameNumber = 0
+		while(capture.isOpened()):
+			ret, frame = capture.read()
+			
+			if ret == False:
+				break
+			
+			detection(analyse())
+			frameNumber += 1
+
+		capture.release()
+		cv2.destroyAllWindows()
+		
+		print("ferdig read")
+		trim()
+		print("ferdig trim")
+
+def analyse():
+	global frame
+	global frameNumber
+	global datetime_object
+	global thresholdMask
+	
 	global frameDetect
 	frameDetect = frameNumber
 	global frameSave
@@ -135,7 +155,7 @@ def analyse(frame, frameNumber, datetime_object, thresholdMask):
 
 		return 1
 
-def detection(isDetect):
+def detection():
 	global detectionPhase
 	global startTime
 	global stopTime
@@ -144,6 +164,8 @@ def detection(isDetect):
 	global frameSave
 	global frameSaveMarked
 	global frameTime
+	
+	global isDetect
 
 	if isDetect == 1:
 		if detectionPhase == False:
@@ -157,8 +179,7 @@ def detection(isDetect):
 			
 	else:
 		if detectionPhase == False:
-			print("No detection")#do nothing
-		
+			print("No detection")
 		elif detectionPhase == True:
 			stopTime = frameDetect
 			detectionPhase = False
@@ -166,6 +187,8 @@ def detection(isDetect):
 			
 def record():
 	global videoName
+	global CompletedVideoQueue
+	
 	currentTime = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
 	obj = VideoObj(currentTime, False)
 	
@@ -207,6 +230,8 @@ def record():
 	setattr(obj, 'finished', 'True')
 	videoName = currentTime
 	CompletedVideoQueue.enqueue(obj)
+	print("enqueuet")
+	print(CompletedVideoQueue.size())
 
 def trim():
 	if not CompletedVideoQueue.isEmpty():
@@ -271,10 +296,6 @@ def upload():
 if __name__ == "__main__":
 	getSettings()
 	
-	record()
-	read()
-	
-	'''
 	while(True):
 		recordProcess = Process(target=record)
 		readProcess = Process(target=read)
@@ -286,6 +307,3 @@ if __name__ == "__main__":
 		
 		recordProcess.terminate()
 		readProcess.terminate()
-		
-		time.sleep(10)
-	'''
