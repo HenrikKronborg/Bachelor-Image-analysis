@@ -1,0 +1,249 @@
+#!/usr/bin/env python3
+
+import cv2
+import numpy as np
+import time
+import os
+import math
+import sys
+import gi
+from datetime import datetime, timedelta
+from multiprocessing import *
+import subprocess
+import copy
+
+gi.require_version("Tcam", "0.1")
+gi.require_version("Gst", "1.0")
+
+from gi.repository import Tcam, Gst
+
+detectionPhase = False
+filmDuration = 5 #sekunder
+
+def getSettings():
+	f = open("config.txt", "r")
+	
+	currentLine = 0
+	for line in f:
+		settings[currentLine] = line.strip("\n")
+		currentLine += 1
+	f.close()
+	# 0: format, 1: fps, 2: sekund før hendelse, 3: sekund etter hendelse, 4: piksel detect min, 5: piksel detect maks, 6: tekst overlay
+	
+	mask = cv2.imread("mask.png")
+	grayMask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
+	retvalMaskTemp, thresholdMaskTemp = cv2.threshold(grayMask, 0, 255, cv2.THRESH_BINARY_INV)
+	thresholdMask.value = thresholdMaskTemp
+	
+def record():
+	currentTime = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
+	if settings[1] == '15':
+		framerate = '15/1'
+	elif settings[1] == '7.5':
+		framerate = '15/2'
+	elif settings[1] == '3.75':
+		framerate = '15/3'
+	else:
+		framerate = '30/1'
+	
+	Gst.init(sys.argv)
+	pipeline = Gst.Pipeline.new()
+	pipeline = Gst.parse_launch('tcamsrc num-buffers=' + str((filmDuration * 30)) +' serial=4810628 '
+				+ '! tcamautoexposure '
+				+ '! tcamwhitebalance '
+				+ '! tcamautofocus '
+				+ '! video/x-bayer,format=bggr,width=1024,height=768,framerate=' + framerate
+				+ '! capssetter join=false caps="video/x-bayer,format=gbrg" '
+				+ '! bayer2rgb '
+				+ '! videoconvert '
+				+ '! omxh264enc '
+				+ '! mp4mux '
+				+ '! filesink location=../Videoer/' + currentTime + '.mp4 ')
+	pipeline.set_state(Gst.State.PLAYING)
+	
+	time.sleep(filmDuration + 0.5)
+	
+	pipeline.set_state(Gst.State.NULL)
+	
+	recorded.put(currentTime)
+	print(currentTime + " enqueuet")
+
+def read():
+	global detectionPhase
+	
+	if not recorded.empty():
+		videoName.value = recorded.get()
+		datetime_object = datetime.strptime(videoName.value, "%d-%m-%Y_%H-%M-%S")
+		
+		capture = cv2.VideoCapture("../Videoer/" + videoName.value + ".mp4")
+		
+		frameNumber = 0
+		detectFrameCount = 0
+		while(capture.isOpened()):
+			ret, frame = capture.read()
+			
+			if ret == False:
+				break
+			
+			frameTime = datetime_object + timedelta(seconds=frameNumber / 30)
+			
+			if analyse(frame, frameNumber) == 1:
+				if detectionPhase == False:
+					print("!!!!!!!!!!! DETECTION !!!!!!!!!!!")
+					startTime = frameNumber
+					cv2.putText(frame, settings[6] + " " + frameTime.strftime("%d/%m/%Y %H:%M:%S"), (2,762), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0,0,0), 2)
+					cv2.putText(frame, settings[6] + " " + frameTime.strftime("%d/%m/%Y %H:%M:%S"), (2,762), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255,255,255))
+					cv2.imwrite("../Detections/Pictures/" + str(frameTime.strftime("%d-%m-%Y_%H-%M-%S")) + ".jpg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
+					
+					cv2.imwrite("../Detections/Pictures/" + str(frameTime.strftime("%d-%m-%Y_%H-%M-%S")) + "_marked.jpg", frameSaveMarked.value, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
+					detectionPhase = True
+				elif detectionPhase == True and frameNumber == (filmDuration * int(settings[1])) - 2:
+					stopTime = frameNumber
+					print("start " + str(startTime) + " slutt " + str(stopTime))
+					trim(startTime, stopTime)
+					print("AVBRYTER PGA SLUTT AV FILM!###########")
+				elif detectionPhase == True:
+					print(str(frameNumber) + " Currently in detectionPhase, not storing a new startTrim")
+					detectFrameCount = 0
+					
+			else:
+				if detectionPhase == False:
+					print(str(frameNumber) + "No detection")
+				elif detectionPhase == True and frameNumber == (filmDuration * int(settings[1])) - 2:
+					stopTime = frameNumber
+					print("start " + str(startTime) + " slutt " + str(stopTime))
+					trim(startTime, stopTime)
+					print("AVBRYTER PGA SLUTT AV FILM!###########")
+				elif detectionPhase == True:
+					if detectFrameCount == 0:
+						stopTime = frameNumber
+					
+					print(str(detectFrameCount) + " detectFrameCount")
+					
+					detectFrameCount += 1
+					
+					if detectFrameCount == 30:
+						print("start " + str(startTime) + " slutt " + str(stopTime))
+						trim(startTime, stopTime)
+						detectionPhase = False
+						detectFrameCount = 0
+					
+			frameNumber += 1
+
+		capture.release()
+		cv2.destroyAllWindows()
+		
+		print("ferdig read")
+		#upload()
+		'''
+		os.system("rm -r ../Videoer/" + str(videoName) + ".mp4")
+		os.system("rm -v ../Detections/Pictures/*")
+		os.system("rm -v ../Detections/Trims/*")
+		'''
+		
+def analyse(frame, frameNumber):
+	'''
+	hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+	#cv2.imshow("HSV Image", hsv)
+	#cv2.waitKey(1)
+	
+	hue ,saturation ,value = cv2.split(hsv)
+	cv2.imshow("saturation", saturation)
+	cv2.waitKey(1)
+	cv2.imshow("hue", hue)
+	cv2.waitKey(1)
+	cv2.imshow("value", value)
+	cv2.waitKey(1)
+	'''
+	
+	grayFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+	# prøv 190 på dagtid
+	retval, threshold = cv2.threshold(grayFrame, 30, 255, cv2.THRESH_BINARY)
+	medianFiltered = cv2.medianBlur(threshold, 3)
+	
+	maskMultiply = cv2.bitwise_and(medianFiltered, thresholdMask.value)
+	
+	_, contours, hierarchy = cv2.findContours(maskMultiply, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+	
+	contour_list = []
+	for contour in contours:
+		area = cv2.contourArea(contour)
+		if area > 50:
+			contour_list.append(contour)
+		print(contour)
+		
+	if not contour_list:
+		return 0
+	else:
+		
+		frameSaveMarked.value = copy.deepcopy(frame)
+		frameSaveMarked.value = cv2.drawContours(frameSaveMarked.value, contour_list, -1, (0,0,255), 2)
+		#frameSave.value = frame
+		
+		return 1
+
+def trim(startTime, stopTime):
+	datetime_object = datetime.strptime(videoName.value, "%d-%m-%Y_%H-%M-%S")
+	filename = datetime_object + timedelta(seconds=startTime / 30)
+	
+	capture = cv2.VideoCapture("../Videoer/" + str(videoName.value) + ".mp4")
+	#fourcc = cv2.VideoWriter_fourcc(*'X264')
+	out = cv2.VideoWriter("../Detections/Trims/" + str(filename.strftime("%d-%m-%Y_%H-%M-%S")) + ".mp4", 0x00000021, 30.0, (1024,768))
+	
+	count = 0
+	while(capture.isOpened()):
+		ret, frame = capture.read()
+		
+		if ret == False:
+			break
+		
+		timeOverlay = datetime_object + timedelta(seconds=count / 30)
+		
+		cv2.putText(frame, settings[6] + " " + timeOverlay.strftime("%d/%m/%Y %H:%M:%S"), (2,762), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0,0,0), 2)
+		cv2.putText(frame, settings[6] + " " + timeOverlay.strftime("%d/%m/%Y %H:%M:%S"), (2,762), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255,255,255))
+		
+		if(count >= (startTime - (int(settings[2]) * 30)) and count <= (stopTime + (int(settings[3]) * 30))):
+		#if(count >= startTime and count <= stopTime):
+			out.write(frame)
+			
+		count += 1
+		
+	capture.release()
+	out.release()
+	cv2.destroyAllWindows()
+	print("ferdig trim")
+
+def upload():
+	for picture in os.listdir("../Detections/Pictures"):
+		p = subprocess.Popen(["scp", "../Detections/Pictures/" + picture, "hessfiles2@freja.hiof.no:/files/hessfiles2/test"])
+		sts = os.waitpid(p.pid, 0)
+	
+	for trim in os.listdir("../Detections/Trims"):
+		p = subprocess.Popen(["scp", "../Detections/Trims/" + trim, "hessfiles2@freja.hiof.no:/files/hessfiles2/test"])
+		sts = os.waitpid(p.pid, 0)
+
+if __name__ == "__main__":
+	m = Manager()
+	settings = m.dict()
+	recorded = m.Queue();
+	videoName = m.Value('c', "")
+	frameSave = m.Value('c', "")
+	frameSaveMarked = m.Value('c', "")
+	thresholdMask = m.Value('c', "")
+	contourList = m.Value('c', "")
+	
+	settingsProcess = Process(target=getSettings)		
+	settingsProcess.start()
+	settingsProcess.join()
+	
+	while(True):
+		recordProcess = Process(target=record)
+		readProcess = Process(target=read)
+		
+		recordProcess.start()
+		readProcess.start()
+		recordProcess.join()
+		readProcess.join()
+		
+		recordProcess.terminate()
+		readProcess.terminate()

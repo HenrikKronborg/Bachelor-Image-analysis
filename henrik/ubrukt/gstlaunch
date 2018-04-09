@@ -20,3 +20,6 @@ gst-launch-1.0 v4l2src device=/dev/video1 ! videoconvert ! videoscale ! video/x-
 
 
 gst-launch-1.0 -e tcamsrc serial=4810628 ! video/x-bayer,format=bggr,width=1024,height=768,framerate=30/1 ! capssetter join=false caps="video/x-bayer,format=gbrg" ! bayer2rgb ! videoconvert ! x264enc ! mp4mux ! filesink location=test.mp4
+
+Start: 1:54 PM | CPU1 32* | GPU 38.5*
+Slutt: 2:59 PM | CPU1 51* | GPU 57.5*

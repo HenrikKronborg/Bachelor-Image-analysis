@@ -1,0 +1,15 @@
+Program
+x	Fikse når fenomen skjer på slutt av video
+x	Fikse at samme sekund filnavn overskriver
+x	Fikse at 0-5 frames blir en video, i stedet for splittes opp i to
+x	Nullstille alle variabler
+x	Sende til server
+x	Tømme mapper / slette trims + bilde
+x	Threading
+x	Fikse filstier
+x	Lagre referansebilde f.eks. hver 10 film
+x	Lese innstillinger fra config fil
+x	Lese maske kun ved oppstart
+x	Fikse at tid i video og filnavn samsvarer
+x	Legge på klokkeslett på bilde og video etterpå, i stedet ved filming
+	Slette alle filer i video mappen ved oppstart av main som er 12timer gamle og eldre

@@ -1,0 +1,29 @@
+Dag/natt:
+Gå etter bevegelse, dersom det er noe som beveger seg i x antall frames(?): (med teller som gir margin)
+
+	-Film kun om det har vært deteksjon i minst 2/3/4 sekunder; ungå å filme bare fordi en fugl fløy rett forbi(30 frames) eller
+	solen som kom fram bak en sky.(forandring i bildet; ~40 frames)
+
+	Fenomen som varer lengre trimmes fra start til stopp(som i førsteAlg()) + x antall frames/sek
+	
+	-kjør førsteAlg() med dagtid-justerte parametere?
+	*fungerer dårlig på dagtid. Sjekk eventuelle parametere, sol og sterkt lys er problem regardless.
+	**antageligvis best å ikke kjøre førsteAlg()
+	***Dersom vi prøver førsteAlg() på dagtid; -Begrense filmelengde så vi ikke filmer 'til solen går ned'. Fast "15 sek"/ + antall frames.
+	
+	^Kjør kun mellom "00:00 og 04:00" med bevegelses-delen; hensikt: bedre trims kontra fast intervall/frames som på dagtid
+	Bonus ved dette: Mer å skrive om, høres mer avansert ut, alt kan brukes i hoveddoc av testene fra 'førsteAlg()'.
+
+
+
+
+Dagens system virker å kun filme mellom 20:30 og 07:00
+
+
+
+
+
+Natt:
+Gå etter bevegelse, dersom det er noe som beveger seg i x antall frames(?):
+#	kjør førsteAlg() med nattid-justerte parametere.
+

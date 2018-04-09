@@ -121,7 +121,7 @@ class CameraVideo(Gtk.Window):
 										 + ' location=/tmp/image-%06d.jpg t. '
 										 + '! queue '
 										 + '! videoconvert '
-										 + '! xvimagesink ')
+										 + '! ximagesink ')
 		'''
 		format = "x-raw,format=YUY2"  # can also be "x-bayer" or "x-raw,format=RGBx"
 		width = 1024

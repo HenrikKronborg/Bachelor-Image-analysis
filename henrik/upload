@@ -1,5 +1,0 @@
-import subprocess
-import os
-
-p = subprocess.Popen(["scp", "test123.txt", "hessfiles2@freja.hiof.no:/files/hessfiles2/test"])
-sts = os.waitpid(p.pid, 0)

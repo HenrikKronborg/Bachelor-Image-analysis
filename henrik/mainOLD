@@ -128,7 +128,7 @@ def analyse(frame, frameNumber, datetime_object, thresholdMask):
 	contour_list = []
 	for contour in contours:
 		area = cv2.contourArea(contour)
-		if area > 100:
+		if area > 70:
 			contour_list.append(contour)
 	
 	#cv2.drawContours(frame, contour_list,  -1, (0,0,255), 2)
@@ -139,6 +139,7 @@ def analyse(frame, frameNumber, datetime_object, thresholdMask):
 		return 0
 	else:
 		frameSaveMarked = cv2.drawContours(frameSaveMarked, contour_list,  -1, (0,0,255), 2)
+
 		frameSave = frame
 		
 		frameTime = datetime_object + timedelta(seconds=frameNumber / 30)

@@ -3,10 +3,10 @@
 import cv2
 import numpy as np
 
-capture = cv2.VideoCapture("../Videoer/26-02-2018_12.19.22.mp4")
+capture = cv2.VideoCapture("vid.mp4")
 
-#fourcc = cv2.VideoWriter_fourcc(*'X264')
-out = cv2.VideoWriter("output.mp4", 0x00000021, 30.0, (1024,768))
+fourcc = cv2.VideoWriter_fourcc(*'BYR1')
+out = cv2.VideoWriter("output.mp4", fourcc, 30.0, (1024,768))
 
 startFrame = 30
 endFrame = 60

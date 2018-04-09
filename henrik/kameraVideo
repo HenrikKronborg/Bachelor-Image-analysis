@@ -15,7 +15,7 @@ def main():
 	
 	pipeline = Gst.Pipeline.new()
 	
-	filmDuration = 3;
+	filmDuration = 10;
 	currentTime = datetime.datetime.now().strftime("%d-%m-%Y_%H.%M.%S")
 	
 	pipeline = Gst.parse_launch('tcamsrc num-buffers=' + str((filmDuration * 30)) +' serial=4810628 '
