@@ -6,7 +6,6 @@
 
 import argparse
 import datetime
-import imutils
 import time
 import cv2
 
@@ -28,6 +27,7 @@ mask = cv2.imread("/home/nvidia/Bachelor/mask.png")
 grayMask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
 retvalMask, thresholdMask = cv2.threshold(grayMask, 0, 255, cv2.THRESH_BINARY_INV)
 
+
 while True:
 	(grabbed, frame) = camera.read()
 	text = "Unoccupied"
@@ -36,7 +36,7 @@ while True:
 		break
 	
 	gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-	gray = cv2.GaussianBlur(gray, (3, 3), 0)
+	gray = cv2.GaussianBlur(gray, (	3, 3), 0)
 	
 	if firstFrame is None:
 		firstFrame = gray
@@ -44,20 +44,23 @@ while True:
 	
 	frameDelta = cv2.absdiff(firstFrame, gray)
 	thresh = cv2.threshold(frameDelta, 25, 255, cv2.THRESH_BINARY)[1]
-	#cv2.imshow("threshold", thresh)
-	#cv2.waitKey(1)
 	
 	thresh = cv2.bitwise_and(thresh, thresholdMask)
 	
+	#dilate = cv2.dilate(thresh.copy(), None, iterations=2)
 	thresh = cv2.dilate(thresh, None, iterations=2)
-	cv2.imshow("dilate", thresh)
-	cv2.waitKey(3)
+	#cv2.imshow("dilate", dilate)
+	#cv2.waitKey(3)
 	
-	_, cnts, _ = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+	#thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, None)
+	#cv2.imshow("morphology", thresh)
+	#cv2.waitKey(3)
+	
+	#_, cnts, _ = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+	_, cnts, _ = cv2.findContours(thresh.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 	
 	for c in cnts:
-		#if (cv2.contourArea(c) < args["min_area"]) or cv2.contourArea(c) > 500:
-		if (cv2.contourArea(c) < args["min_area"]):
+		if(cv2.contourArea(c) < 50):
 			continue
 
 		#(x, y, w, h) = cv2.boundingRect(c)
@@ -82,7 +85,7 @@ while True:
 	if key == ord("q"):
 		break
 	
-	if counter % 15 == 0:
+	if counter % 30 == 0:
 		firstFrame = gray
 	counter += 1
 

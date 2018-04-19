@@ -17,9 +17,9 @@ gi.require_version("Gst", "1.0")
 
 from gi.repository import Tcam, Gst
 
-detectionPhase = False
-filmDuration = 15 #sekunder
+filmDuration = 15 # Seconds
 filepath = "/home/nvidia/Bachelor/"
+detectionPhase = False
 previousFrame = None
 
 def getSettings():
@@ -32,7 +32,8 @@ def getSettings():
 		settings[currentLine] = line.strip("\n")
 		currentLine += 1
 	f.close()
-	# 0: format, 1: fps, 2: sekund før hendelse, 3: sekund etter hendelse, 4: piksel detect min, 5: piksel detect maks, 6: tekst overlay
+	# 0: Seconds saved before detection, 1: Seconds saved after detection, 2: Minimum object size for detection, 3: Maximum object size for detection,
+	# 4: Number of frames before updating reference picture, 5: Number of frames containing a detection before start recording, 6: Number of frames not containing a detection before stop recording, 7: Text overlay
 	
 	mask = cv2.imread(filepath + "mask.png")
 	grayMask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
@@ -44,14 +45,6 @@ def record():
 	
 	while(True):
 		currentTime = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
-		if settings[1] == '15':
-			framerate = '15/1'
-		elif settings[1] == '7.5':
-			framerate = '15/2'
-		elif settings[1] == '3.75':
-			framerate = '15/3'
-		else:
-			framerate = '30/1'
 		
 		Gst.init(sys.argv)
 		pipeline = Gst.Pipeline.new()
@@ -59,7 +52,7 @@ def record():
 					+ '! tcamautoexposure '
 					+ '! tcamwhitebalance '
 					+ '! tcamautofocus '
-					+ '! video/x-bayer,format=bggr,width=1024,height=768,framerate=' + framerate + ' '
+					+ '! video/x-bayer,format=bggr,width=1024,height=768,framerate=30/1'
 					+ '! capssetter join=false caps="video/x-bayer,format=gbrg" '
 					+ '! bayer2rgb '
 					+ '! videoconvert '
@@ -95,49 +88,29 @@ def read():
 					break
 				
 				frameTime = datetime_object + timedelta(seconds=frameNumber / 30)
-				
-				######
-				'''
-				startFrameShow = copy.deepcopy(frame)
-				frameMarkedShow = copy.deepcopy(startFrameShow)
-				
-				cv2.putText(startFrameShow, str(frameNumber), (2,700), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0,0,255))
-				cv2.imshow("vanlig", startFrameShow)
-				cv2.waitKey(25)
-				
-				for contour in contourList:
-					(x, y), radius = cv2.minEnclosingCircle(contour)
-					cv2.circle(frameMarkedShow, (int(x), int(y)), int(radius), (0, 0, 255), 2)	
-				cv2.putText(frameMarkedShow, settings[6] + " " + frameTime.strftime("%d/%m/%Y %H:%M:%S"), (2,762), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0,0,0), 2)
-				cv2.putText(frameMarkedShow, settings[6] + " " + frameTime.strftime("%d/%m/%Y %H:%M:%S"), (2,762), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255,255,255))
-				cv2.imshow("markert", frameMarkedShow)
-				cv2.waitKey(25)
-				'''
-				######
-				
+								
 				if analyse(frame, frameNumber) == 1:
 					if detectionPhase == False:
 						startFrame = frame
 						startTime = frameNumber
 						detectionPhase = True
 						print("FIKK EN 1'ER OG NÅ HUSKER VI STARTFRAME :)")
-					elif detectionPhase == True and detectStartCount == 30:
+					elif detectionPhase == True and detectStartCount == settings[5]:
 						print("!!!!!!!!!!! DETECTION !!!!!!!!!!!")
 						
 						frameMarked = copy.deepcopy(startFrame)
 						
-						cv2.putText(startFrame, settings[6] + " " + frameTime.strftime("%d/%m/%Y %H:%M:%S"), (2,762), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0,0,0), 2)
-						cv2.putText(startFrame, settings[6] + " " + frameTime.strftime("%d/%m/%Y %H:%M:%S"), (2,762), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255,255,255))
+						cv2.putText(startFrame, settings[7] + " " + frameTime.strftime("%d/%m/%Y %H:%M:%S"), (2,762), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0,0,0), 2)
+						cv2.putText(startFrame, settings[7] + " " + frameTime.strftime("%d/%m/%Y %H:%M:%S"), (2,762), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255,255,255))
 						cv2.imwrite(filepath + "Detections/Pictures/" + str(frameTime.strftime("%d-%m-%Y_%H-%M-%S")) + ".jpg", startFrame, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
 						
-						#frameMarked = cv2.drawContours(frameMarked, contourList, -1, (0,0,255), 2)
 						for contour in contourList:
 							(x, y), radius = cv2.minEnclosingCircle(contour)
-							cv2.circle(frameMarked, (int(x), int(y)), int(radius), (0, 0, 255), 2)	
-						cv2.putText(frameMarked, settings[6] + " " + frameTime.strftime("%d/%m/%Y %H:%M:%S"), (2,762), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0,0,0), 2)
-						cv2.putText(frameMarked, settings[6] + " " + frameTime.strftime("%d/%m/%Y %H:%M:%S"), (2,762), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255,255,255))
+							cv2.circle(frameMarked, (int(x), int(y)), int(radius), (0, 0, 255), 2)
+						cv2.putText(frameMarked, settings[7] + " " + frameTime.strftime("%d/%m/%Y %H:%M:%S"), (2,762), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0,0,0), 2)
+						cv2.putText(frameMarked, settings[7] + " " + frameTime.strftime("%d/%m/%Y %H:%M:%S"), (2,762), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255,255,255))
 						cv2.imwrite(filepath + "Detections/Pictures/" + str(frameTime.strftime("%d-%m-%Y_%H-%M-%S")) + "_marked.jpg", frameMarked, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
-					elif detectionPhase == True and frameNumber == (filmDuration * int(settings[1])) - 2 and detectStartCount >= 30:
+					elif detectionPhase == True and frameNumber == (filmDuration * 30) - 2 and detectStartCount >= 30:
 						stopTime = frameNumber
 						print("start " + str(startTime) + " slutt " + str(stopTime))
 						trim(startTime, stopTime)
@@ -152,7 +125,7 @@ def read():
 				else:
 					if detectionPhase == False:
 						print(str(frameNumber) + "No detection")
-					elif detectionPhase == True and frameNumber == (filmDuration * int(settings[1])) - 2 and detectStartCount >= 30:
+					elif detectionPhase == True and frameNumber == (filmDuration * 30) - 2 and detectStartCount >= 30:
 						stopTime = frameNumber
 						print("start " + str(startTime) + " slutt " + str(stopTime))
 						trim(startTime, stopTime)
@@ -165,18 +138,19 @@ def read():
 						
 						print(str(detectEndCount) + " detectEndCount")
 						
-						detectEndCount += 1
-						
-						if detectStartCount <= 30:
+						if detectStartCount <= settings[5]:
 							detectStartCount = 0
 							detectionPhase = False
 						
-						if detectEndCount == 30:
+						if detectEndCount == settings[6]:
 							print("start " + str(startTime) + " slutt " + str(stopTime))
 							trim(startTime, stopTime)
 							detectionPhase = False
 							detectStartCount = 0
 							detectEndCount = 0
+						
+						detectEndCount += 1
+						
 					print("detection start count " + str(detectStartCount))
 				
 				frameNumber += 1
@@ -212,12 +186,10 @@ def analyse(frame, frameNumber):
 	
 	contourList[:] = []
 	for contour in contours:
-		if cv2.contourArea(contour) < 100: #or cv2.contourArea(contour) > 500:
-			continue
-		
-		contourList.append(contour)
+		if cv2.contourArea(contour) > settings[2] and cv2.contourArea(contour) < settings[3]:
+			contourList.append(contour)
 	
-	if frameNumber % 15 == 0:
+	if frameNumber % settings[4] == 0:
 		previousFrame = gray
 	
 	if not contourList:
@@ -246,10 +218,10 @@ def trim(startTime, stopTime):
 		
 		timeOverlay = datetime_object + timedelta(seconds=count / 30)
 		
-		cv2.putText(frame, settings[6] + " " + timeOverlay.strftime("%d/%m/%Y %H:%M:%S"), (2,762), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0,0,0), 2)
-		cv2.putText(frame, settings[6] + " " + timeOverlay.strftime("%d/%m/%Y %H:%M:%S"), (2,762), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255,255,255))
+		cv2.putText(frame, settings[7] + " " + timeOverlay.strftime("%d/%m/%Y %H:%M:%S"), (2,762), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0,0,0), 2)
+		cv2.putText(frame, settings[7] + " " + timeOverlay.strftime("%d/%m/%Y %H:%M:%S"), (2,762), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255,255,255))
 		
-		if(count >= (startTime - (int(settings[2]) * 30)) and count <= (stopTime + (int(settings[3]) * 30))):
+		if(count >= (startTime - (int(settings[0]) * 30)) and count <= (stopTime + (int(settings[1]) * 30))):
 			out.write(frame)
 			
 		count += 1
