@@ -27,10 +27,8 @@ def getSettings():
 	
 	f = open(filepath + "config.txt", "r")
 	
-	currentLine = 0
 	for line in f:
-		settings[currentLine] = line.strip("\n")
-		currentLine += 1
+		settings.append(line.strip("\n"))
 	f.close()
 	# 0: Seconds saved before detection, 1: Seconds saved after detection, 2: Minimum object size for detection, 3: Maximum object size for detection,
 	# 4: Number of frames before updating reference picture, 5: Number of frames containing a detection before start recording, 6: Number of frames not containing a detection before stop recording, 7: Text overlay
@@ -250,7 +248,7 @@ def upload():
 
 if __name__ == "__main__":
 	m = Manager()
-	settings = m.dict() #mulig gjør om til list og fjern currentLine variabelen i settings()
+	settings = m.list()
 	recorded = m.Queue()
 	videoName = m.Value('c', "")
 	frameSave = m.Value('c', "")
