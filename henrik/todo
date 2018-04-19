@@ -1,0 +1,22 @@
+TODO
+
+Nettside
+  Innstilling for pixelstørrelse detect
+    Min og max
+
+Program
+  Fikse når fenomen skjer på slutt av video
+  Fikse at samme sekund filnavn overskriver
+  Fikse at 0-5 frames blir en video, i stedet for splittes opp i to
+  Nullstille alle variabler
+  Sende til server
+  Tømme mapper / slette trims + bilde
+  Threading
+  Fikse filstier
+  Try / catch på filming av video
+  Lese config fil ved oppstart
+    Hvor lenge før/etter film
+    Pikselstørrelse detect
+    Farger
+    FPS
+    
