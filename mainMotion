@@ -17,7 +17,7 @@ gi.require_version("Gst", "1.0")
 
 from gi.repository import Tcam, Gst
 
-filmDuration = 15 # Seconds
+filmDuration = 20 # Seconds
 filepath = "/home/nvidia/Bachelor/"
 detectionPhase = False
 previousFrame = None
@@ -59,7 +59,7 @@ def record():
 					+ '! videoconvert '
 					+ '! omxh264enc '
 					+ '! mp4mux '
-					+ '! filesink location=' + filepath + 'Videoer/' + currentTime + '.mp4 ')
+					+ '! filesink location=' + filepath + 'Videos/' + currentTime + '.mp4 ')
 		pipeline.set_state(Gst.State.PLAYING)
 		
 		time.sleep(filmDuration + 0.5)
@@ -77,7 +77,7 @@ def read():
 		if not recorded.empty():
 			videoName.value = recorded.get()
 			datetime_object = datetime.strptime(videoName.value, "%d-%m-%Y_%H-%M-%S")
-			capture = cv2.VideoCapture(filepath + "Videoer/" + videoName.value + ".mp4")
+			capture = cv2.VideoCapture(filepath + "Videos/" + videoName.value + ".mp4")
 			
 			frameNumber = 0
 			detectStartCount = 0
@@ -96,7 +96,7 @@ def read():
 						startTime = frameNumber
 						detectionPhase = True
 						print("FIKK EN 1'ER OG NÅ HUSKER VI STARTFRAME :)")
-					elif detectionPhase == True and detectStartCount == settings[5]:
+					elif detectionPhase == True and detectStartCount == int(settings[5]):
 						print("!!!!!!!!!!! DETECTION !!!!!!!!!!!")
 						
 						cv2.putText(startFrame, settings[7] + " " + frameTime.strftime("%d/%m/%Y %H:%M:%S"), (2,762), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0,0,0), 2)
@@ -105,9 +105,9 @@ def read():
 						
 						for contour in contourList:
 							(x, y), radius = cv2.minEnclosingCircle(contour)
-							cv2.circle(frame, (int(x), int(y)), int(radius), (0, 0, 255), 2)
-						cv2.imwrite(filepath + "Detections/Pictures/" + str(frameTime.strftime("%d-%m-%Y_%H-%M-%S")) + "_marked.jpg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
-					elif detectionPhase == True and frameNumber == (filmDuration * 30) - 2 and detectStartCount >= settings[5]:
+							cv2.circle(startFrame, (int(x), int(y)), int(radius), (0, 0, 255), 2)
+						cv2.imwrite(filepath + "Detections/Pictures/" + str(frameTime.strftime("%d-%m-%Y_%H-%M-%S")) + "_marked.jpg", startFrame, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
+					elif detectionPhase == True and frameNumber == (filmDuration * 30) - 2 and detectStartCount >= int(settings[5]):
 						stopTime = frameNumber
 						print("start " + str(startTime) + " slutt " + str(stopTime))
 						trim(startTime, stopTime)
@@ -122,7 +122,7 @@ def read():
 				else:
 					if detectionPhase == False:
 						print(str(frameNumber) + "No detection")
-					elif detectionPhase == True and frameNumber == (filmDuration * 30) - 2 and detectStartCount >= settings[5]:
+					elif detectionPhase == True and frameNumber == (filmDuration * 30) - 2 and detectStartCount >= int(settings[5]):
 						stopTime = frameNumber
 						print("start " + str(startTime) + " slutt " + str(stopTime))
 						trim(startTime, stopTime)
@@ -130,18 +130,16 @@ def read():
 						detectionPhase = False
 						
 					elif detectionPhase == True:
-						#if detectEndCount == 0:
-						#	stopTime = frameNumber
-						
 						print(str(detectEndCount) + " detectEndCount")
 						
-						if detectStartCount <= settings[5]:
+						if detectStartCount <= int(settings[5]):
 							detectStartCount = 0
 							detectionPhase = False
 						
-						if detectEndCount == settings[6]:
+						if detectEndCount == int(settings[6]):
+							stopTime = frameNumber - int(settings[6])
 							print("start " + str(startTime) + " slutt " + str(stopTime))
-							trim(startTime, stopTime-settings[6])
+							trim(startTime, stopTime)
 							detectionPhase = False
 							detectStartCount = 0
 							detectEndCount = 0
@@ -159,7 +157,7 @@ def read():
 			
 			#upload()
 			
-			#os.system("rm -f " + filepath + "Videoer/" + str(videoName.value) + ".mp4")
+			os.system("rm -f " + filepath + "Videos/" + str(videoName.value) + ".mp4")
 		
 def analyse(frame, frameNumber):
 	global previousFrame
@@ -183,10 +181,10 @@ def analyse(frame, frameNumber):
 	
 	contourList[:] = []
 	for contour in contours:
-		if cv2.contourArea(contour) > settings[2] and cv2.contourArea(contour) < settings[3]:
+		if cv2.contourArea(contour) > float(settings[2]) and cv2.contourArea(contour) < float(settings[3]):
 			contourList.append(contour)
 	
-	if frameNumber % settings[4] == 0:
+	if frameNumber % int(settings[4]) == 0:
 		previousFrame = gray
 	
 	if not contourList:
@@ -200,10 +198,7 @@ def trim(startTime, stopTime):
 	datetime_object = datetime.strptime(videoName.value, "%d-%m-%Y_%H-%M-%S")
 	filename = datetime_object + timedelta(seconds=startTime / 30)
 	
-	capture = cv2.VideoCapture(filepath + "Videoer/" + str(videoName.value) + ".mp4")
-	#fourcc = cv2.VideoWriter_fourcc(*'X264')
-	# 0x00000021		funker fint, liten filstørrelse
-	# 0x0000006c
+	capture = cv2.VideoCapture(filepath + "Videos/" + str(videoName.value) + ".mp4")
 	out = cv2.VideoWriter(filepath + "Detections/Trims/" + str(filename.strftime("%d-%m-%Y_%H-%M-%S")) + ".mp4", 0x00000021, 30.0, (1024,768))
 	
 	count = 0
@@ -239,10 +234,10 @@ def upload():
 		if uploadFile("Detections/Trims/" + trim):
 			os.system("rm -f " + filepath + "Detections/Trims/" + trim)
 
-def uploadFile(path, filename):
+def uploadFile(filename):
 	global filepath
 	
-	return not subprocess.Popen(["scp", filepath + path + filename, "hessfiles2@freja.hiof.no:/files/hessfiles2/test"]).wait()
+	return not subprocess.Popen(["scp", filepath + filename, "hessfiles2@freja.hiof.no:/files/hessfiles2/test"]).wait()
 
 if __name__ == "__main__":	
 	m = Manager()
@@ -255,7 +250,7 @@ if __name__ == "__main__":
 	contourList = m.list()
 	
 	for video in os.listdir(filepath + "Videos"):
-		m.put(video)
+		recorded.put(os.path.splitext(video)[0])
 	
 	settingsProcess = Process(target=getSettings)		
 	settingsProcess.start()

@@ -11,5 +11,6 @@ x	Lagre referansebilde f.eks. hver 10 film
 x	Lese innstillinger fra config fil
 x	Lese maske kun ved oppstart
 x	Fikse at tid i video og filnavn samsvarer
-x	Legge på klokkeslett på bilde og video etterpå, i stedet ved filming
-	Slette alle filer i video mappen ved oppstart av main som er 12timer gamle og eldre
+x	Legge på klokkeslett på bilde og video etterpå, i stedet ved filming	
+x	Ved oppstart: legg alle filer i videomappen inn i køen
+	Evt implementere at Jetson overklokkes ved oppstart av program, men er ikke nødvendig
