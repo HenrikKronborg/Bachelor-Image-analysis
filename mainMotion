@@ -148,6 +148,9 @@ def read():
 						
 					print("detection start count " + str(detectStartCount))
 				
+				if frameNumber == 50:
+					cv2.imwrite(filepath + "reference.jpg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
+				
 				frameNumber += 1
 
 			capture.release()
