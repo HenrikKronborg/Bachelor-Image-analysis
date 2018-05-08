@@ -198,12 +198,7 @@ def trim(startTime, stopTime):
 	datetime_object = datetime.strptime(videoName.value, "%d-%m-%Y_%H-%M-%S")
 	filename = datetime_object + timedelta(seconds=startTime / 30)
 	
-	frameStart = startTime - (int(settings[0]) * 30)
-	if(frameStart <= 0):
-		frameStart = 0
-	
 	capture = cv2.VideoCapture(filepath + "Videos/" + str(videoName.value) + ".mp4")
-	capture.set(1, frameStart)
 	out = cv2.VideoWriter(filepath + "Detections/Trims/" + str(filename.strftime("%d-%m-%Y_%H-%M-%S")) + ".mp4", 0x00000021, 30.0, (1024,768))
 	
 	count = 0
@@ -213,16 +208,14 @@ def trim(startTime, stopTime):
 		if ret == False:
 			break
 		
-		timeOverlay = datetime_object + timedelta(seconds=count / 30)
+		if(count >= (startTime - (int(settings[0]) * 30)) and count <= (stopTime + (int(settings[1]) * 30))):
+			timeOverlay = datetime_object + timedelta(seconds=count / 30)
 		
-		cv2.putText(frame, settings[7] + " " + timeOverlay.strftime("%d/%m/%Y %H:%M:%S"), (2,762), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0,0,0), 2)
-		cv2.putText(frame, settings[7] + " " + timeOverlay.strftime("%d/%m/%Y %H:%M:%S"), (2,762), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255,255,255))
+			cv2.putText(frame, settings[7] + " " + timeOverlay.strftime("%d/%m/%Y %H:%M:%S"), (2,762), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0,0,0), 2)
+			cv2.putText(frame, settings[7] + " " + timeOverlay.strftime("%d/%m/%Y %H:%M:%S"), (2,762), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255,255,255))
 			
-		out.write(frame)
-		
-		if count == (stopTime + (int(settings[1]) * 30)):
-			break
-		
+			out.write(frame)
+			
 		count += 1
 		
 	capture.release()
