@@ -34,6 +34,7 @@ def getSettings():
 		settings.append(line.strip("\n"))
 	f.close()
 	'''
+	Settings read from the config.txt file with corresponding array location:
 	0: Seconds saved before detection, 1: Seconds saved after detection, 2: Minimum object size for detection, 3: Maximum object size for detection,
 	4: Number of frames before updating reference picture, 5: Number of frames containing a detection before start recording,
 	6: Number of frames not containing a detection before stop recording, 7: Text overlay
@@ -43,7 +44,8 @@ def getSettings():
 	mask = cv2.imread(filepath + "mask.png")
 	grayMask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
 	retvalMaskTemp, thresholdMaskTemp = cv2.threshold(grayMask, 0, 255, cv2.THRESH_BINARY_INV)
-	thresholdMask.value = thresholdMaskTemp		# Variable to share the mask between processes
+	# Variable to share the mask between processes
+	thresholdMask.value = thresholdMaskTemp
 
 def record():
 	global filepath
@@ -234,7 +236,7 @@ def trim(startTime, stopTime):
 		frameStart = 0
 	
 	capture = cv2.VideoCapture(filepath + "Videos/" + str(videoName.value) + ".mp4")
-	# Only read the video from from the calculated start frame. This to avoid having to read the entire videofile
+	# Only read the video from the calculated start frame. This to avoid having to read the entire videofile
 	capture.set(1, frameStart)
 	# Specify where to make the new videofile, what format, frames per second and size
 	out = cv2.VideoWriter(filepath + "Detections/Trims/" + str(filename.strftime("%d-%m-%Y_%H-%M-%S")) + ".mp4", 0x00000021, 30.0, (1024,768))
