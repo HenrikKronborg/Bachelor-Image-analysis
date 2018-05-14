@@ -20,7 +20,7 @@ from gi.repository import Tcam, Gst
 # Number of seconds to record and save
 filmDuration = 20
 # Location of the project files
-filepath = "/home/nvidia/Desktop/Bachelor/"
+filepath = "/home/nvidia/Bachelor/"
 detectionPhase = False
 previousFrame = None
 
@@ -81,6 +81,7 @@ def record():
 		
 		# Add the filename to the queue
 		recorded.put(currentTime)
+		print(currentTime + " enqueuet")
 
 def read():
 	global detectionPhase
@@ -111,8 +112,10 @@ def read():
 						startFrame = frame
 						startTime = frameNumber
 						detectionPhase = True
+						print("FIKK EN 1'ER OG NÅ HUSKER VI STARTFRAME :)")
 					# Saves two images if the picture analysis has returned 1 a userdefined number of times in a row
 					elif detectionPhase == True and detectStartCount == int(settings[5]):
+						print("!!!!!!!!!!! DETECTION !!!!!!!!!!!")
 						# Calculate to readable time from frameNumber
 						frameTime = datetime_object + timedelta(seconds=frameNumber / 30)
 						
@@ -129,23 +132,33 @@ def read():
 					# Force trim if the picture analysis has returned 1 a userdefined number of times in a row and we're at the last frame of the video to avoid corrupted trims
 					elif detectionPhase == True and frameNumber == (filmDuration * 30) - 2 and detectStartCount >= int(settings[5]):
 						stopTime = frameNumber
+						print("start " + str(startTime) + " slutt " + str(stopTime))
 						trim(startTime, stopTime)
+						print("AVBRYTER PGA SLUTT AV FILM!###########")
 						detectionPhase = False
 					# If we're in detectionphase, reset the detectEndCount variable that's counting number of times the picture analysis returns 0
 					elif detectionPhase == True:
+						print(str(frameNumber) + " Currently in detectionPhase, not storing a new startTrim")
 						detectEndCount = 0
 					
+					print("detection start count " + str(detectStartCount))
 					detectStartCount += 1					
 				else:
 					# The picture analysis returns 0:
+					if detectionPhase == False:
+						print(str(frameNumber) + "No detection")
 					
 					# Same logic as above. Force trim if the picture analysis has returned 1 a userdefined number of times in a row and we're at the last frame of the video to avoid corrupted trims
 					if detectionPhase == True and frameNumber == (filmDuration * 30) - 2 and detectStartCount >= int(settings[5]):
 						stopTime = frameNumber
+						print("start " + str(startTime) + " slutt " + str(stopTime))
 						trim(startTime, stopTime)
+						print("AVBRYTER PGA SLUTT AV FILM!###########")
 						detectionPhase = False
 					# If we're in detectionphase
 					elif detectionPhase == True:
+						print(str(detectEndCount) + " detectEndCount")
+						
 						# If detectStartCount is less than or equal to the userdefined variable counting number of times the picture analysis returns 1 in a row, then reset the variable and go out of detectinophase
 						if detectStartCount <= int(settings[5]):
 							detectStartCount = 0
@@ -153,12 +166,15 @@ def read():
 						# If the picture analysis returns 0 a userdefined number of times make a trim of the video and prepare the program for a new possible detection
 						if detectEndCount == int(settings[6]):
 							stopTime = frameNumber - int(settings[6])
+							print("start " + str(startTime) + " slutt " + str(stopTime))
 							trim(startTime, stopTime)
 							detectionPhase = False
 							detectStartCount = 0
 							detectEndCount = 0
 						
 						detectEndCount += 1
+					
+					print("detection start count " + str(detectStartCount))
 				
 				# Save a new background image for the control panel at the 50th frame of read video
 				if frameNumber == 50:
