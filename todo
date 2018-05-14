@@ -13,4 +13,4 @@ x	Lese maske kun ved oppstart
 x	Fikse at tid i video og filnavn samsvarer
 x	Legge på klokkeslett på bilde og video etterpå, i stedet ved filming	
 x	Ved oppstart: legg alle filer i videomappen inn i køen
-	Evt implementere at Jetson overklokkes ved oppstart av program, men er ikke nødvendig
+/	Evt implementere at Jetson overklokkes ved oppstart av program, men er ikke nødvendig

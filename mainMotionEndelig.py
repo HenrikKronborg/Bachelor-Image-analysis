@@ -20,7 +20,7 @@ from gi.repository import Tcam, Gst
 # Number of seconds to record and save
 filmDuration = 20
 # Location of the project files
-filepath = "/home/nvidia/Bachelor/"
+filepath = "/home/nvidia/Desktop/Bachelor/"
 detectionPhase = False
 previousFrame = None
 
