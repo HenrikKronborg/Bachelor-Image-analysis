@@ -23,7 +23,7 @@ else:
 firstFrame = None
 counter = 0
 
-mask = cv2.imread("/home/nvidia/Bachelor/mask.png")
+mask = cv2.imread("/home/nvidia/Desktop/Bachelor/mask.png")
 grayMask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
 retvalMask, thresholdMask = cv2.threshold(grayMask, 0, 255, cv2.THRESH_BINARY_INV)
 

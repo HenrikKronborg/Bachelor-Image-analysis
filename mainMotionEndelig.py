@@ -160,9 +160,9 @@ def read():
 						
 						detectEndCount += 1
 				
-				# Save a new background image for the control panel at the 50th frame of read video
-				if frameNumber == 50:
-					cv2.imwrite(filepath + "reference.jpg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
+					# Save a new background image for the control panel at the 50th frame of read video
+					if frameNumber == 50:
+						cv2.imwrite(filepath + "reference.jpg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
 				
 				frameNumber += 1
 
@@ -241,7 +241,7 @@ def trim(startTime, stopTime):
 	# Specify where to make the new videofile, what format, frames per second and size
 	out = cv2.VideoWriter(filepath + "Detections/Trims/" + str(filename.strftime("%d-%m-%Y_%H-%M-%S")) + ".mp4", 0x00000021, 30.0, (1024,768))
 	
-	count = 0
+	count = frameStart
 	while(capture.isOpened()):
 		ret, frame = capture.read()
 		
@@ -258,7 +258,7 @@ def trim(startTime, stopTime):
 		out.write(frame)
 		
 		# Includes the userdefined number of seconds to include in the trim after the detection happened
-		if count == (stopTime + (int(settings[1]) * 30)):
+		if count >= (stopTime + (int(settings[1]) * 30)):
 			break
 		
 		count += 1
