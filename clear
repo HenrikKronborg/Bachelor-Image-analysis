@@ -11,7 +11,7 @@ from gi.repository import Tcam, Gst
 '''
 
 if __name__ == "__main__":
-	os.system("rm -r Videoer/*")
+	os.system("rm -r Videos/*")
 	os.system("rm -r Detections/Pictures/*")
 	os.system("rm -r Detections/Trims/*")
 	'''

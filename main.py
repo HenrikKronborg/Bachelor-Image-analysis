@@ -18,7 +18,7 @@ gi.require_version("Gst", "1.0")
 from gi.repository import Tcam, Gst
 
 # Number of seconds to record and save
-filmDuration = 20
+filmDuration = 10
 # Location of the project files
 filepath = "/home/nvidia/Desktop/Bachelor/"
 detectionPhase = False
@@ -145,7 +145,7 @@ def read():
 						trim(startTime, stopTime)
 						detectionPhase = False
 					# If we're in detectionphase
-					elif detectionPhase == True:
+					elif detectionPhase == True:						
 						# If detectStartCount is less than or equal to the userdefined variable counting number of times the picture analysis returns 1 in a row, then reset the variable and go out of detectinophase
 						if detectStartCount <= int(settings[5]):
 							detectStartCount = 0
@@ -159,7 +159,7 @@ def read():
 							detectEndCount = 0
 						
 						detectEndCount += 1
-				
+									
 					# Save a new background image for the control panel at the 50th frame of read video
 					if frameNumber == 50:
 						cv2.imwrite(filepath + "reference.jpg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
@@ -270,19 +270,41 @@ def trim(startTime, stopTime):
 def upload():
 	global filepath
 	
-	# For each picture in filepath/Detections/Pictures, try to upload it. If upload is succesful delete the file
-	for picture in os.listdir(filepath + "Detections/Pictures"):
-		if uploadFile("Detections/Pictures/" + picture):
-			os.system("rm -f " + filepath + "Detections/Pictures/" + picture)
+	# Get all folder names from the server
+	checkFolder = subprocess.run(["ssh", "hessfiles2@freja.hiof.no", "ls test/"], shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False).stdout
+	checkFolder = str(checkFolder).strip("b'").replace("n", "").split('\\')
+	checkFolder.pop()
+	
 	# For each trim in filepath/Detections/Trims, try to upload it. If upload is succesful delete the file
 	for trim in os.listdir(filepath + "Detections/Trims"):
-		if uploadFile("Detections/Trims/" + trim):
+		folderExist = False
+		date = trim[:10]
+		
+		# Check if folder exists
+		for folder in checkFolder:
+			if(folder == date):
+				folderExist = True
+				checkFolder.append(date)
+				break
+		
+		# Create folder only if it doesn't exist
+		if folderExist == False:
+			subprocess.run(["ssh", "hessfiles2@freja.hiof.no", "mkdir -m 777 test/" + date], shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
+		
+		if uploadFile("Detections/Trims/" + trim, date):
 			os.system("rm -f " + filepath + "Detections/Trims/" + trim)
 
-def uploadFile(filename):
+	# For each picture in filepath/Detections/Pictures, try to upload it. If upload is succesful delete the file
+	for picture in os.listdir(filepath + "Detections/Pictures"):
+		date = picture[:10]
+		
+		if uploadFile("Detections/Pictures/" + picture, date):
+			os.system("rm -f " + filepath + "Detections/Pictures/" + picture)
+
+def uploadFile(filename, directory):
 	global filepath
 	# Connect to the Hessdalen server through SCP and upload file specified in the functions parameter
-	return not subprocess.Popen(["scp", filepath + filename, "hessfiles2@freja.hiof.no:/files/hessfiles2/test"]).wait()
+	return not subprocess.Popen(["scp", filepath + filename, "hessfiles2@freja.hiof.no:/files/hessfiles2/test/" + directory]).wait()
 
 if __name__ == "__main__":
 	# Creating a manager to share variables between processes

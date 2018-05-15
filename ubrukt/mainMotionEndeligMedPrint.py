@@ -188,7 +188,7 @@ def read():
 			upload()
 			
 			# Delete the read video
-			#os.system("rm -f " + filepath + "Videos/" + str(videoName.value) + ".mp4")
+			os.system("rm -f " + filepath + "Videos/" + str(videoName.value) + ".mp4")
 		
 def analyse(frame, frameNumber):
 	global previousFrame
@@ -286,19 +286,43 @@ def trim(startTime, stopTime):
 def upload():
 	global filepath
 	
-	# For each picture in filepath/Detections/Pictures, try to upload it. If upload is succesful delete the file
-	for picture in os.listdir(filepath + "Detections/Pictures"):
-		if uploadFile("Detections/Pictures/" + picture):
-			os.system("rm -f " + filepath + "Detections/Pictures/" + picture)
+	checkFolder = subprocess.run(["ssh", "hessfiles2@freja.hiof.no", "ls test/"], shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False).stdout
+	checkFolder = str(checkFolder).strip("b'").replace("n", "").split('\\')
+	print("111111111111111111111111111111111111111111111")
+	checkFolder.pop()
+	
 	# For each trim in filepath/Detections/Trims, try to upload it. If upload is succesful delete the file
 	for trim in os.listdir(filepath + "Detections/Trims"):
-		if uploadFile("Detections/Trims/" + trim):
-			os.system("rm -f " + filepath + "Detections/Trims/" + trim)
+		print("2222222222222222222222222222222222222")
+		folderExist = False
+		date = trim[:10]
+		
+		for folder in checkFolder:
+			print(date + "     " + folder)
+			if(folder == date):
+				folderExist = True
+				checkFolder.append(date)
+				break
 
-def uploadFile(filename):
+		if folderExist == False:
+			print("kom hit")			
+			subprocess.run(["ssh", "hessfiles2@freja.hiof.no", "mkdir -m 777 test/" + date], shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
+		
+		print("333333333333333333333333333333333333333333##")
+		if uploadFile("Detections/Trims/" + trim, date):
+			os.system("rm -f " + filepath + "Detections/Trims/" + trim)
+		print("444444444444444444444444444444444444444444")
+	# For each picture in filepath/Detections/Pictures, try to upload it. If upload is succesful delete the file
+	for picture in os.listdir(filepath + "Detections/Pictures"):
+		date = picture[:10]
+		
+		if uploadFile("Detections/Pictures/" + picture, date):
+			os.system("rm -f " + filepath + "Detections/Pictures/" + picture)
+
+def uploadFile(filename, directory):
 	global filepath
 	# Connect to the Hessdalen server through SCP and upload file specified in the functions parameter
-	return not subprocess.Popen(["scp", filepath + filename, "hessfiles2@freja.hiof.no:/files/hessfiles2/test"]).wait()
+	return not subprocess.Popen(["scp", filepath + filename, "hessfiles2@freja.hiof.no:/files/hessfiles2/test/" + directory]).wait()
 
 if __name__ == "__main__":
 	# Creating a manager to share variables between processes
